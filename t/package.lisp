@@ -34,7 +34,7 @@
                 ;; list contents are recursively quoted
                 ;; then joined by a space
                 :pointsize "0.4px")
-      (func-plot "sin(x)")
+      (func-plot "sin(x)" :title "super sin curve!")
       (plot (lambda ()
               (format t "~&0 0")
               (format t "~&1 1"))

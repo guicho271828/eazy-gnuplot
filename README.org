@@ -3,8 +3,8 @@
 
 Super Duper Doopa Booka Lispy Gnuplot library
 
-+ Structure-less -- no CFFI, no CLOS, no STRUCTURE 
-+ Just print the data to the =*standard-output*= inside =plot= function
+- Structure-less -- no CFFI, no CLOS, no STRUCTURE 
+- Just print the data to the =*standard-output*= inside =plot= function
 
 ** Usage
 
@@ -24,7 +24,7 @@ Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
              ;; list contents are recursively quoted
              ;; then joined by a space
              :pointsize "0.4px")
-   (func-plot "sin(x)")
+   (func-plot "sin(x)" :title "super sin curve!")
    (plot (lambda ()
            (format t "~&0 0")
            (format t "~&1 1"))
@@ -49,7 +49,7 @@ set output "/mnt/video/guicho/repos/lisp/eazy-gnuplot/sample.pdf"
 set terminal pdf
 set key bottom right font "Times New Roman, 6"
 set pointsize "0.4px"
-plot sin(x), '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
+plot sin(x) title "super sin curve!", '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
 0 0
 1 1
 end
