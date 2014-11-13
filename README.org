@@ -8,9 +8,9 @@ Super Duper Doopa Booka Lispy Gnuplot library
 
 ** Usage
 
-1 =with-plots= and (at least) 1 =gp-setup= per output file.
+Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
 =gp-setup= can set any attributes -- mighty
-=&allow-other-keys=. (no compatibility issue Re: different gnuplot!).
+=&allow-other-keys=. /no compatibility issue re: different gnuplot!/.
 
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
