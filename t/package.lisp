@@ -31,7 +31,7 @@
                 :terminal :pdf          ; keyword/symbols are not quoted
                                         ; (but not escaped)
                 :key '(:bottom :right :font "Times New Roman, 6")
-                ;; lists contents are recursively quoted
+                ;; list contents are recursively quoted
                 ;; then joined by a space
                 :pointsize "0.4px")
       (func-plot "sin(x)")
