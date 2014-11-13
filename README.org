@@ -10,9 +10,8 @@ Super Duper Doopa Booka Lispy Gnuplot library
 
 + 1 =with-plots= and (at least) 1 =gp-setup= per output file
 
-Basically any attributes can be set -- mighty =&allow-other-keys=.  There
-would be no compatibility issue regarding future/past changes in different
-gnuplot versions.
+=gp-setup= can set any attributes -- mighty
+=&allow-other-keys=. (no compatibility issue Re: different gnuplot!).
 
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
@@ -26,6 +25,7 @@ gnuplot versions.
              ;; lists contents are recursively quoted
              ;; then joined by a space
              :pointsize "0.4px")
+   (func-plot "sin(x)")
    (plot (lambda ()
            (format t "~&0 0")
            (format t "~&1 1"))
@@ -40,9 +40,8 @@ gnuplot versions.
          :with '(:lines)))
 #+END_SRC
 
-This produces the following gnuplot code internally (when :debug is non-nil,
-it is also output to =*trace-output*= via =broadcast-stream=). It will then
-be fed to gnuplot interpreter.
+This produces the following gnuplot code internally. It will then be fed
+into gnuplot interpreter, resulting in [[https://raw.githubusercontent.com/guicho271828/eazy-gnuplot/master/sample.pdf][this]] pdf.
 
 #+BEGIN_SRC gnuplot
 set xlabel "x-label"
@@ -51,7 +50,7 @@ set output "/mnt/video/guicho/repos/lisp/eazy-gnuplot/sample.pdf"
 set terminal pdf
 set key bottom right font "Times New Roman, 6"
 set pointsize "0.4px"
-plot '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
+plot sin(x), '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
 0 0
 1 1
 end

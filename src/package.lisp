@@ -102,7 +102,8 @@
 (defun func-plot (string &rest args
                   &key &allow-other-keys)
   (let ((*print-case* :downcase))
-    (format *plot-stream* "~@[,~] ~a" *data-functions* string)
+    (format *plot-stream* "~:[~&plot~;,~] ~a"
+            *data-functions* string)
     (gp-map-args
      args
      (lambda (&rest args)
