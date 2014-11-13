@@ -15,28 +15,29 @@ would be no compatibility issue regarding future/past changes in different
 gnuplot versions.
 
 #+BEGIN_SRC lisp
-(with-plots (*standard-output* :debug t) ; when 
-      (gp-setup :xlabel "x-label"       ; strings are "quoted"
-                :ylabel "y-label"
-                :output path            ; pathnames are "quoted"
-                :terminal :pdf          ; keyword/symbols are not quoted
-                                        ; (but not escaped)
-                :key '(:bottom :right :font "Times New Roman, 6")
-                ;; lists contents are recursively quoted
-                ;; then joined by a space
-                :pointsize "0.4px")
-      (plot (lambda ()
-              (format t "~&0 0")
-              (format t "~&1 1"))
-            :using '(1 2)
-            :title "1"
-            :with '(:linespoint))
-      (plot (lambda ()
-              (format t "~&0 1")
-              (format t "~&1 0"))
-            :using '(1 2)
-            :title "2"
-            :with '(:lines)))
+;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
+(with-plots (*standard-output* :debug t)
+   (gp-setup :xlabel "x-label"       ; strings are "quoted"
+             :ylabel "y-label"
+             :output path            ; pathnames are "quoted"
+             :terminal :pdf          ; keyword/symbols are not quoted
+                                     ; (but not escaped)
+             :key '(:bottom :right :font "Times New Roman, 6")
+             ;; lists contents are recursively quoted
+             ;; then joined by a space
+             :pointsize "0.4px")
+   (plot (lambda ()
+           (format t "~&0 0")
+           (format t "~&1 1"))
+         :using '(1 2)
+         :title "1"
+         :with '(:linespoint))
+   (plot (lambda ()
+           (format t "~&0 1")
+           (format t "~&1 0"))
+         :using '(1 2)
+         :title "2"
+         :with '(:lines)))
 #+END_SRC
 
 This produces the following gnuplot code internally (when :debug is non-nil,
