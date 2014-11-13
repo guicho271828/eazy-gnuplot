@@ -18,10 +18,9 @@
 (defsystem eazy-gnuplot
   :version "0.1"
   :author "guicho"
-  :mailto ""
-  :license ""
-  :depends-on (:iterate :optima :alexandria 
-                        :trivial-shell)
+  :mailto "guicho2.71828@gmail.com"
+  :license "LLGPL"
+  :depends-on (:iterate :optima :alexandria :trivial-shell)
   :components ((:module "src"
                 :components
                 ((:file "package"))))

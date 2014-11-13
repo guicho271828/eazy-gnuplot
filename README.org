@@ -1,7 +1,63 @@
 
 * Eazy-Gnuplot 
 
+Super Duper Doopa Booka Lispy Gnuplot library
+
++ Structure-less -- no CFFI, no CLOS, no STRUCTURE 
++ Just print the data to the =*standard-output*= inside =plot= function
+
 ** Usage
+
++ 1 =with-plots= and (at least) 1 =gp-setup= per output file
+
+Basically any attributes can be set -- mighty =&allow-other-keys=.  There
+would be no compatibility issue regarding future/past changes in different
+gnuplot versions.
+
+#+BEGIN_SRC lisp
+(with-plots (*standard-output* :debug t) ; when 
+      (gp-setup :xlabel "x-label"       ; strings are "quoted"
+                :ylabel "y-label"
+                :output path            ; pathnames are "quoted"
+                :terminal :pdf          ; keyword/symbols are not quoted
+                                        ; (but not escaped)
+                :key '(:bottom :right :font "Times New Roman, 6")
+                ;; lists contents are recursively quoted
+                ;; then joined by a space
+                :pointsize "0.4px")
+      (plot (lambda ()
+              (format t "~&0 0")
+              (format t "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (plot (lambda ()
+              (format t "~&0 1")
+              (format t "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines)))
+#+END_SRC
+
+This produces the following gnuplot code internally (when :debug is non-nil,
+it is also output to =*trace-output*= via =broadcast-stream=). It will then
+be fed to gnuplot interpreter.
+
+#+BEGIN_SRC gnuplot
+set xlabel "x-label"
+set ylabel "y-label"
+set output "/mnt/video/guicho/repos/lisp/eazy-gnuplot/sample.pdf"
+set terminal pdf
+set key bottom right font "Times New Roman, 6"
+set pointsize "0.4px"
+plot '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
+0 0
+1 1
+end
+0 1
+1 0
+end
+#+END_SRC
 
 ** Dependencies
 
@@ -20,18 +76,16 @@ Also, it depends on the following libraries:
 + ALEXANDRIA by  ::
     Alexandria is a collection of portable public domain utilities.
 
-
-
-** Installation
-
++ TRIVIAL-SHELL by Gary Warren King <gwking@metabang.com> ::
+    OS and Implementation independent access to the shell
 
 ** Author
 
-+ guicho
++ Masataro Asai
 
 * Copyright
 
-Copyright (c) 2014 guicho
+LLGPL
 
 
 
