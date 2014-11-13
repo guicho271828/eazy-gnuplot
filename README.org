@@ -6,9 +6,7 @@ Super Duper Doopa Booka Lispy Gnuplot library
 + Structure-less -- no CFFI, no CLOS, no STRUCTURE 
 + Just print the data to the =*standard-output*= inside =plot= function
 
-** Usage
-
-+ 1 =with-plots= and (at least) 1 =gp-setup= per output file
+** Usage -- 1 =with-plots= and (at least) 1 =gp-setup= per output file
 
 =gp-setup= can set any attributes -- mighty
 =&allow-other-keys=. (no compatibility issue Re: different gnuplot!).
