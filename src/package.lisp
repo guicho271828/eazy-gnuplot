@@ -70,7 +70,8 @@
 (defvar *data-functions*)
 (defvar *plot-stream*)
 (defun call-with-plots (*plot-stream* string-stream body)
-  (let (*data-functions*)
+  (let (*data-functions*
+        (*print-case* :downcase))
     (funcall body)
     (dolist (fn (nreverse *data-functions*))
       (when fn ; could be nil
@@ -83,7 +84,6 @@
 
 (defun plot (data-producing-fn &rest args
              &key &allow-other-keys)
-  (let ((*print-case* :downcase))
     (format *plot-stream* "~:[~&plot~;,~] '-'" *data-functions*)
     (gp-map-args
      args
@@ -98,11 +98,10 @@
      (lambda ()
        (funcall data-producing-fn)
        (format *plot-stream* "~&end"))
-     *data-functions*)))
+   *data-functions*))
 
 (defun func-plot (string &rest args
                   &key &allow-other-keys)
-  (let ((*print-case* :downcase))
     (format *plot-stream* "~:[~&plot~;,~] ~a"
             *data-functions* string)
     (gp-map-args
@@ -114,5 +113,5 @@
          ((list key val)
           (format *plot-stream* " ~a ~a"
                   key (gp-quote val))))))
-    (push nil *data-functions*)))
+  (push nil *data-functions*))
 
