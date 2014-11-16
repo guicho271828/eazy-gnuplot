@@ -12,6 +12,7 @@
   (:export :with-plots
            :func-plot
            :plot
+           :splot
            :gp-setup
            :*gnuplot-home*))
 (in-package :eazy-gnuplot)
@@ -59,11 +60,11 @@
   (once-only (debug)
     (with-gensyms (string-stream)
       `(let* ((,string-stream (make-string-output-stream))
-              (,stream ,(if debug
-                            `(make-broadcast-stream
+              (,stream (if ,debug
+                           (make-broadcast-stream
                               ,string-stream
                               *trace-output*)
-                            string-stream)))
+                           ,string-stream)))
          (call-with-plots ,stream ,string-stream (lambda () ,@body))))))
 
 (defvar *data-functions*)
