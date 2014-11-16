@@ -80,3 +80,46 @@
             :with '(:lines)))
   (is-true (probe-file path))))
 
+
+
+(test splot
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "splot.pdf")))
+    (print path)
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :xlabel "x-label"       ; strings are "quoted"
+                :ylabel "y-label"
+                :zlabel "z-label"
+                :output path            ; pathnames are "quoted"
+                :terminal :pdf          ; keyword/symbols are not quoted
+                                        ; (but not escaped)
+                :key '(:bottom :right :font "Times New Roman, 6")
+                ;; list contents are recursively quoted
+                ;; then joined by a space
+                :pointsize "0.4px")
+      (func-splot "sin(x)+cos(y)" :title "super sin/cos surface!")
+      (flet ((neg (x) (if (zerop x) 1 0)))
+        (dotimes (x 2)
+          (dotimes (y 2)
+            (dotimes (z 2)
+              (let ((x x) (y y) (z z))
+                (splot (lambda ()
+                         (row x y z)
+                         (apply #'row (mapcar #'neg (list x y z))))
+                       :title (format nil "~a~a~a" x y z)
+                       :with '(:lines))))))))
+  (is-true (probe-file path))))
+
+(test incompatible-plot
+  (signals error
+    (with-plots (*standard-output* :debug t)
+      (gp-setup)
+      (func-plot "sin(x)")
+      (func-splot "sin(x)+cos(y)")))
+  (signals error
+    (with-plots (*standard-output* :debug t)
+      (gp-setup)
+      (plot (lambda () (row 1 2)))
+      (splot (lambda () (row 1 2 3))))))

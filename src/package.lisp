@@ -11,6 +11,7 @@
         :trivial-shell)
   (:export :with-plots
            :func-plot
+           :func-splot
            :plot
            :splot
            :gp-setup
@@ -70,8 +71,10 @@
 
 (defvar *data-functions*)
 (defvar *plot-stream*)
+(defvar *plot-type*)
 (defun call-with-plots (*plot-stream* string-stream body)
   (let (*data-functions*
+        *plot-type*
         (*print-case* :downcase))
     (funcall body)
     (dolist (fn (nreverse *data-functions*))
@@ -83,39 +86,44 @@
    (make-string-input-stream
     (get-output-stream-string string-stream))))
 
-(defun plot (data-producing-fn &rest args
-             &key &allow-other-keys)
-    (format *plot-stream* "~:[~&plot~;,~] '-'" *data-functions*)
-    (gp-map-args
-     args
-     (lambda (&rest args)
-       (match args
-         ((list :using (and val (type list)))
-          (format *plot-stream* " using ~{~a~^:~}" val))
-         ((list key val)
-          (format *plot-stream* " ~a ~a"
-                  key (gp-quote val))))))
-    (push
-     (lambda ()
-       (funcall data-producing-fn)
-       (format *plot-stream* "~&end"))
+(defun %plot (data-producing-fn &rest args
+              &key (type :plot) string &allow-other-keys)
+  (if *data-functions*
+      (if (eq type *plot-type*)
+          (format *plot-stream* ", ~a" string)
+          (error "Using incompatible plot type in a same figure!"))
+      (progn
+        (format *plot-stream* "~%~a ~a" type string)
+        (setf *plot-type* type)))
+  (remf args :type)
+  (remf args :string)
+  (gp-map-args
+   args
+   (lambda (&rest args)
+     (match args
+       ((list :using (and val (type list)))
+        (format *plot-stream* " using ~{~a~^:~}" val))
+       ((list key val)
+        (format *plot-stream* " ~a ~a"
+                key (gp-quote val))))))
+  (push
+   (if data-producing-fn
+       (lambda ()
+         (funcall data-producing-fn)
+         (format *plot-stream* "~&end"))
+       nil)
    *data-functions*))
 
-(defun func-plot (string &rest args
-                  &key &allow-other-keys)
-    (format *plot-stream* "~:[~&plot~;,~] ~a"
-            *data-functions* string)
-    (gp-map-args
-     args
-     (lambda (&rest args)
-       (match args
-         ((list :using (and val (type list)))
-          (format *plot-stream* " using ~{~a~^:~}" val))
-         ((list key val)
-          (format *plot-stream* " ~a ~a"
-                  key (gp-quote val))))))
-  (push nil *data-functions*))
+(defun plot (data-producing-fn &rest args &key using &allow-other-keys)
+  (apply #'%plot data-producing-fn :string "'-'" args))
+(defun splot (data-producing-fn &rest args &key using &allow-other-keys)
+  (apply #'plot data-producing-fn :type :splot args))
+(defun func-plot (string &rest args &key using &allow-other-keys)
+  (apply #'%plot nil :string string args))
+(defun func-splot (string &rest args &key using &allow-other-keys)
+  (apply #'func-plot string :type :splot args))
 
 (defun row (&rest args)
   "Write a row"
   (format t "~%~{~a~^ ~}" args))
+
