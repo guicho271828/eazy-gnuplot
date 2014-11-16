@@ -14,7 +14,8 @@
            :plot
            :splot
            :gp-setup
-           :*gnuplot-home*))
+           :*gnuplot-home*
+           :row))
 (in-package :eazy-gnuplot)
 
 ;; gnuplot interface
@@ -115,3 +116,6 @@
                   key (gp-quote val))))))
   (push nil *data-functions*))
 
+(defun row (&rest args)
+  "Write a row"
+  (format t "~%~{~a~^ ~}" args))
