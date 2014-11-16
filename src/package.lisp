@@ -55,9 +55,7 @@
                    (format *plot-stream* "~&set ~a ~a"
                            key (gp-quote val))))))
 
-
-
-(defmacro with-plots ((stream &key debug) &body body)
+(defmacro with-plots ((&optional (stream '*standard-output*) &key debug) &body body)
   (assert (symbolp stream))
   (once-only (debug)
     (with-gensyms (string-stream)

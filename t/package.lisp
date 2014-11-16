@@ -80,8 +80,6 @@
             :with '(:lines)))
   (is-true (probe-file path))))
 
-
-
 (test splot
   (let ((path (asdf:system-relative-pathname
                :eazy-gnuplot.test "splot.pdf")))
@@ -123,3 +121,34 @@
       (gp-setup)
       (plot (lambda () (row 1 2)))
       (splot (lambda () (row 1 2 3))))))
+
+(test optional-arg
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "optional.pdf")))
+    (print path)
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots ()
+      (gp-setup :xlabel "x-label"       ; strings are "quoted"
+                :ylabel "y-label"
+                :output path            ; pathnames are "quoted"
+                :terminal :pdf          ; keyword/symbols are not quoted
+                                        ; (but not escaped)
+                :key '(:bottom :right :font "Times New Roman, 6")
+                ;; list contents are recursively quoted
+                ;; then joined by a space
+                :pointsize "0.4px")
+      (func-plot "sin(x)" :title "super sin curve!")
+      (plot (lambda ()
+              (format t "~&0 0")
+              (format t "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (plot (lambda ()
+              (format t "~&0 1")
+              (format t "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines)))
+  (is-true (probe-file path))))
