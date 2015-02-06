@@ -7,8 +7,13 @@
 (defpackage eazy-gnuplot
   (:use :cl :iterate
         :optima
-        :alexandria
-        :trivial-shell)
+        :alexandria)
+  (:import-from 
+   #+(and ccl linux)
+   :trivial-shell
+   #-(and ccl linux)
+   :eazy-process
+   :shell-command)
   (:export :with-plots
            :func-plot
            :func-splot
@@ -81,8 +86,7 @@
   (shell-command
    *gnuplot-home*
    :input
-   (make-string-input-stream
-    (get-output-stream-string string-stream))))
+   (get-output-stream-string string-stream)))
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)

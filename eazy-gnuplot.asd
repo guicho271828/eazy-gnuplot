@@ -19,7 +19,11 @@
   :version "0.1"
   :author "Masataro Asai --  guicho2.71828@gmail.com"
   :license "LLGPL"
-  :depends-on (:iterate :optima :alexandria :trivial-shell)
+  :depends-on (:iterate :optima :alexandria
+                        #+(and ccl linux)
+                        :trivial-shell
+                        #-(and ccl linux)
+                        :eazy-process)
   :components ((:module "src"
                 :components
                 ((:file "package"))))
