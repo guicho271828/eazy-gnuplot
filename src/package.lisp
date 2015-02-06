@@ -60,7 +60,10 @@
                    (format *plot-stream* "~&set ~a ~a"
                            key (gp-quote val))))))
 
-(defmacro with-plots ((&optional (stream '*standard-output*) &key debug) &body body)
+(defmacro with-plots ((&optional
+                       (stream '*standard-output*)
+                       &key debug (external-format :default))
+                      &body body)
   (assert (symbolp stream))
   (once-only (debug)
     (with-gensyms (string-stream)
@@ -70,12 +73,18 @@
                               ,string-stream
                               *trace-output*)
                            ,string-stream)))
-         (call-with-plots ,stream ,string-stream (lambda () ,@body))))))
+         (call-with-plots ,stream
+                          ,string-stream
+                          ,external-format
+                          (lambda () ,@body))))))
 
 (defvar *data-functions*)
 (defvar *plot-stream*)
 (defvar *plot-type*)
-(defun call-with-plots (*plot-stream* string-stream body)
+(defun call-with-plots (*plot-stream*
+                        string-stream
+                        external-format
+                        body)
   (let (*data-functions*
         *plot-type*
         (*print-case* :downcase))
@@ -86,7 +95,9 @@
   (shell-command
    *gnuplot-home*
    :input
-   (get-output-stream-string string-stream)))
+   (get-output-stream-string string-stream)
+   #-(and ccl linux)
+   :external-format external-format))
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
