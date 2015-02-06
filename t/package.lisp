@@ -49,6 +49,37 @@
             :with '(:lines)))
   (is-true (probe-file path))))
 
+(test no-stdout
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "nostdout.pdf")))
+    (print path)
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots (s :debug t)
+      (gp-setup :xlabel "x-label"       ; strings are "quoted"
+                :ylabel "y-label"
+                :output path            ; pathnames are "quoted"
+                :terminal :pdf          ; keyword/symbols are not quoted
+                                        ; (but not escaped)
+                :key '(:bottom :right :font "Times New Roman, 6")
+                ;; list contents are recursively quoted
+                ;; then joined by a space
+                :pointsize "0.4px")
+      (func-plot "sin(x)" :title "super sin curve!")
+      (plot (lambda ()
+              (format s "~&0 0")
+              (format s "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (plot (lambda ()
+              (row 0 1)
+              (format s "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines)))
+  (is-true (probe-file path))))
+
 (test row
   (let ((path (asdf:system-relative-pathname
                :eazy-gnuplot.test "row.pdf")))

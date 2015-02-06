@@ -138,5 +138,5 @@
 
 (defun row (&rest args)
   "Write a row"
-  (format t "~%~{~a~^ ~}" args))
+  (format *plot-stream* "~&~{~a~^ ~}" args))
 
