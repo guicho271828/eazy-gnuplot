@@ -27,8 +27,7 @@
   :components ((:module "src"
                 :components
                 ((:file "package"))))
-  :description ""
-  
+  :description "An intuitive CL interface to gnuplot."
   :long-description
   #.(with-open-file (stream (merge-pathnames
                              #p"includes/README.org"

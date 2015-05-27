@@ -13,6 +13,7 @@
 (defsystem eazy-gnuplot.test
   :author "guicho"
   :license ""
+  :description "Test library of eazy-gnuplot"
   :depends-on (:eazy-gnuplot
                :fiveam)
   :components ((:module "t"
