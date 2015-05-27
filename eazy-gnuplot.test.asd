@@ -11,8 +11,9 @@
 
 
 (defsystem eazy-gnuplot.test
-  :author "guicho"
-  :license ""
+  :author "Masataro Asai"
+  :mailto "guicho2.71828@gmail.com"
+  :license "LLGPL"
   :description "Test library of eazy-gnuplot"
   :depends-on (:eazy-gnuplot
                :fiveam)
