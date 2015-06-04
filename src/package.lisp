@@ -71,7 +71,7 @@
               (,stream (if ,debug
                            (make-broadcast-stream
                               ,output-string-stream
-                              *trace-output*)
+                              *error-output*)
                            ,output-string-stream)))
          (call-with-plots ,stream
                           ,output-string-stream
