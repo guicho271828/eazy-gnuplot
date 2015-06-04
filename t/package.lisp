@@ -183,3 +183,29 @@
             :title "2"
             :with '(:lines)))
   (is-true (probe-file path))))
+
+(test png
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "sample.png")))
+    (print path)
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :output path
+                :terminal :png
+                :key '(:bottom :right :font "Times New Roman, 6")
+                :pointsize "0.4px")
+      (func-plot "sin(x)" :title "super sin curve!")
+      (plot (lambda ()
+              (format t "~&0 0")
+              (format t "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (plot (lambda ()
+              (format t "~&0 1")
+              (format t "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines)))
+  (is-true (probe-file path))))

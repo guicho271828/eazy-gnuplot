@@ -92,6 +92,8 @@
     (dolist (fn (nreverse *data-functions*))
       (when fn ; could be nil
         (funcall fn))))
+  ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
+  (format output-string-stream "~&set output")
   (shell-command
    *gnuplot-home*
    :input (get-output-stream-string output-string-stream)
