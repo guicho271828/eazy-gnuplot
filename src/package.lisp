@@ -66,15 +66,15 @@
                       &body body)
   (assert (symbolp stream))
   (once-only (debug)
-    (with-gensyms (string-stream)
-      `(let* ((,string-stream (make-string-output-stream))
+    (with-gensyms (output-string-stream)
+      `(let* ((,output-string-stream (make-string-output-stream))
               (,stream (if ,debug
                            (make-broadcast-stream
-                              ,string-stream
+                              ,output-string-stream
                               *trace-output*)
-                           ,string-stream)))
+                           ,output-string-stream)))
          (call-with-plots ,stream
-                          ,string-stream
+                          ,output-string-stream
                           ,external-format
                           (lambda () ,@body))))))
 
@@ -82,7 +82,7 @@
 (defvar *plot-stream*)
 (defvar *plot-type*)
 (defun call-with-plots (*plot-stream*
-                        string-stream
+                        output-string-stream
                         external-format
                         body)
   (let (*data-functions*
@@ -94,8 +94,7 @@
         (funcall fn))))
   (shell-command
    *gnuplot-home*
-   :input
-   (get-output-stream-string string-stream)
+   :input (get-output-stream-string output-string-stream)
    #-(and ccl linux)
    :external-format external-format))
 
