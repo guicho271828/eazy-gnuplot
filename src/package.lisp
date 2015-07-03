@@ -68,30 +68,30 @@
   (once-only (debug)
     (with-gensyms (output-string-stream)
       `(let* ((,output-string-stream (make-string-output-stream))
-              (,stream (if ,debug
-                           (make-broadcast-stream
-                              ,output-string-stream
-                              *error-output*)
-                           ,output-string-stream)))
-         (call-with-plots ,stream
+              (*plot-stream* (if ,debug
+                                 (make-broadcast-stream ,output-string-stream
+                                                        *error-output*)
+                                 ,output-string-stream))
+              (,stream (make-synonym-stream '*plot-stream*)))
+         (call-with-plots *plot-stream*
                           ,output-string-stream
                           ,external-format
                           (lambda () ,@body))))))
 
-(defvar *data-functions*)
 (defvar *plot-stream*)
 (defvar *plot-type*)
+(defvar *data-strings*)
 (defun call-with-plots (*plot-stream*
                         output-string-stream
                         external-format
                         body)
-  (let (*data-functions*
-        *plot-type*
+  (let ((*data-strings* nil)
+        (*plot-type* nil)
         (*print-case* :downcase))
     (funcall body)
-    (dolist (fn (nreverse *data-functions*))
-      (when fn ; could be nil
-        (funcall fn))))
+    (map nil
+         (lambda (str) (write-sequence str *plot-stream*))
+         (nreverse *data-strings*)))
   ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
   (format *plot-stream* "~&set output")
   (shell-command
@@ -102,13 +102,15 @@
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
-  (if *data-functions*
-      (if (eq type *plot-type*)
-          (format *plot-stream* ", ~a" string)
-          (error "Using incompatible plot type in a same figure!"))
-      (progn
-        (format *plot-stream* "~%~a ~a" type string)
-        (setf *plot-type* type)))
+  (cond
+    ((null *plot-type*)
+     (format *plot-stream* "~%~a ~a" type string)
+     (setf *plot-type* type))
+    ((eq type *plot-type*)
+     (format *plot-stream* ", ~a" string))
+    (t
+     (error "Using incompatible plot type in a same figure!")))
+
   (remf args :type)
   (remf args :string)
   (gp-map-args
@@ -120,21 +122,24 @@
        ((list key val)
         (format *plot-stream* " ~a ~a"
                 key (gp-quote val))))))
-  (push
-   (if data-producing-fn
-       (lambda ()
-         (funcall data-producing-fn)
-         (format *plot-stream* "~&end"))
-       nil)
-   *data-functions*))
+  (push (with-output-to-string (*plot-stream*)
+          (when (functionp data-producing-fn)
+            (terpri *plot-stream*)
+            (funcall data-producing-fn)
+            (format *plot-stream* "~&end")))
+        *data-strings*))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
   (apply #'%plot data-producing-fn :string "'-'" args))
 (defun splot (data-producing-fn &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
   (apply #'plot data-producing-fn :type :splot args))
 (defun func-plot (string &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
   (apply #'%plot nil :string string args))
 (defun func-splot (string &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
   (apply #'func-plot string :type :splot args))
 
 (defun row (&rest args)
