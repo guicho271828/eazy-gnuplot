@@ -98,6 +98,8 @@
    *gnuplot-home*
    :input (get-output-stream-string output-string-stream)
    #-(and ccl linux)
+   :verbose t
+   #-(and ccl linux)
    :external-format external-format))
 
 (defun %plot (data-producing-fn &rest args
