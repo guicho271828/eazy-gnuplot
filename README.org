@@ -23,7 +23,16 @@ Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
              :key '(:bottom :right :font "Times New Roman, 6")
              ;; list contents are recursively quoted
              ;; then joined by a space
-             :pointsize "0.4px")
+             :pointsize "0.4px"
+             :yrange :|[0:1]|
+             ; currently, specifying these kinds of options requires to abuse
+             ; keywords and symbols. Another example: comma separated list.
+             ; :terminal '(:pdf :size |10cm,6cm|)
+             )
+
+   ;; unsupported commands can also be used by printing to the stream
+   (format t "~%unset keys")
+
    (func-plot "sin(x)" :title "super sin curve!")
    (plot (lambda ()
            (format t "~&0 0")

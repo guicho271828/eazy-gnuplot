@@ -20,7 +20,7 @@
   :author "Masataro Asai"
   :mailto "guicho2.71828@gmail.com"
   :license "LLGPL"
-  :depends-on (:iterate :optima :alexandria
+  :depends-on (:iterate :trivia :alexandria
                         #+(and ccl linux)
                         :trivial-shell
                         #-(and ccl linux)

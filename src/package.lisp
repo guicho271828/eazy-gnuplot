@@ -6,7 +6,7 @@
 (in-package :cl-user)
 (defpackage eazy-gnuplot
   (:use :cl :iterate
-        :optima
+        :trivia
         :alexandria)
   (:import-from 
    #+(and ccl linux)
@@ -33,11 +33,16 @@
     ((type string) (format nil "\"~a\"" value))
     ((type pathname) (gp-quote (namestring value)))
     (nil "")
+    ((symbol name)
+     (if (some (conjoin #'both-case-p #'lower-case-p) name)
+         name                           ; escaped characters e.g. |Left|
+         (string-downcase name)))
     ((type list)
      (reduce (lambda (str val)
                (format nil "~a ~a"
                        str (gp-quote val)))
              value))
+    ;; numbers etc
     (_ value)))
 
 (defun gp-map-args (args fn)
@@ -97,6 +102,8 @@
   (shell-command
    *gnuplot-home*
    :input (get-output-stream-string output-string-stream)
+   #-(and ccl linux)
+   :verbose t
    #-(and ccl linux)
    :external-format external-format))
 
