@@ -49,6 +49,31 @@
             :with '(:lines)))
   (is-true (probe-file path))))
 
+(test top-left-reverse-left
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "sample-top-left.pdf")))
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :output path
+                :terminal :pdf
+                :key '(:top :left :reverse :|Left| :font "Times New Roman, 6")
+                :pointsize "0.4px")
+      (func-plot "sin(x)" :title "super sin curve!")
+      (plot (lambda ()
+              (format t "~&0 0")
+              (format t "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (plot (lambda ()
+              (format t "~&0 1")
+              (format t "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines)))
+  (is-true (probe-file path))))
+
 (test no-stdout
   (let ((path (asdf:system-relative-pathname
                :eazy-gnuplot.test "nostdout.pdf")))
