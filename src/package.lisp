@@ -6,7 +6,7 @@
 (in-package :cl-user)
 (defpackage eazy-gnuplot
   (:use :cl :iterate
-        :optima
+        :trivia
         :alexandria)
   (:import-from 
    #+(and ccl linux)
