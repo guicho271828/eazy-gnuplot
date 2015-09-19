@@ -99,13 +99,18 @@
          (nreverse *data-strings*)))
   ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
   (format *plot-stream* "~&set output")
-  (shell-command
-   *gnuplot-home*
-   :input (get-output-stream-string output-string-stream)
-   #-(and ccl linux)
-   :verbose t
-   #-(and ccl linux)
-   :external-format external-format))
+  (multiple-value-bind (stdout stderr status)
+      (shell-command
+       *gnuplot-home*
+       :input (get-output-stream-string output-string-stream)
+       #-(and ccl linux)
+       :verbose t
+       #-(and ccl linux)
+       :external-format external-format)
+    (when status
+      (when (not (zerop (first status)))
+        (error "gnuplot did not finish normally!")))))
+
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
