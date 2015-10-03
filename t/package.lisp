@@ -234,3 +234,33 @@
             :title "2"
             :with '(:lines)))
   (is-true (probe-file path))))
+
+(test issue-8
+  ;; allow putting a printer to arbitrary position
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test "sample.png")))
+    (print path)
+    (when (probe-file path)
+      (delete-file path))
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :output path
+                :terminal :png
+                :key '(:bottom :right :font "Times New Roman, 6")
+                :pointsize "0.4px")
+      (func-plot "sin(x)" :title "super sin curve!")
+      (format t "~&set label \"1\" at graph 0.2,0.2 center")
+      (plot (lambda ()
+              (format t "~&0 0")
+              (format t "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (format t "~&set label \"2\" at graph 0.5,0.5 center")
+      (plot (lambda ()
+              (format t "~&0 1")
+              (format t "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines))
+      (format t "~&set label \"3\" at graph 0.8,0.8 center"))
+  (is-true (probe-file path))))
