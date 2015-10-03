@@ -8,12 +8,6 @@
   (:use :cl :iterate
         :trivia
         :alexandria)
-  (:import-from 
-   #+(and ccl linux)
-   :trivial-shell
-   #-(and ccl linux)
-   :eazy-process
-   :shell-command)
   (:export :with-plots
            :func-plot
            :func-splot
@@ -109,27 +103,22 @@
           (funcall body (make-synonym-stream '*user-stream*))
           ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
           (format after-plot-stream "~&set output"))
-        (multiple-value-bind (stdout stderr status)
-            (shell-command
-             *gnuplot-home*
-             :input 
-             ((lambda (str)
-                (if debug
-                    (print str *error-output*)
-                    str))
-              (concatenate 'string
-                           (get-output-stream-string before-plot-stream)
-                           (get-output-stream-string *plot-stream*)
-                           (get-output-stream-string *data-stream*)
-                           (get-output-stream-string after-plot-stream)))
-             #-(and ccl linux)
-             :verbose t
-             #-(and ccl linux)
-             :external-format external-format)
-          (declare (ignorable stderr stdout))
-          (when status
-            (when (not (zerop (first status)))
-              (error "gnuplot did not finish normally!")))))))
+        (with-input-from-string (in ((lambda (str)
+                                       (if debug
+                                           (print str *error-output*)
+                                           str))
+                                     (concatenate 'string
+                                                  (get-output-stream-string before-plot-stream)
+                                                  (get-output-stream-string *plot-stream*)
+                                                  (get-output-stream-string *data-stream*)
+                                                  (get-output-stream-string after-plot-stream))))
+          (multiple-value-match 
+              (uiop:run-program *gnuplot-home*
+                                :input in
+                                :external-format external-format)
+            ((_ _ status)
+             (when (not (zerop status))
+               (error "gnuplot did not finish normally!"))))))))
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
