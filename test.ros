@@ -7,7 +7,8 @@ exec ros -Q -- $0 "$@"
 (ql:quickload :fiveam)
 (ql:quickload :cffi)
 
-(let ((lfp (merge-pathnames "libfixposix/build/src/lib/.libs/")))
+(let ((lfp (merge-pathnames "libfixposix/build/src/lib/.libs/"
+                            (user-homedir-pathname))))
   (print lfp)
   (push lfp cffi:*foreign-library-directories*))
 
