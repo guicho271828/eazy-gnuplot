@@ -213,24 +213,27 @@
 
 (test issue-8
   (with-fixture test-plot ("issue-8.png")
-    (with-plots (*standard-output* :debug t)
+    (with-plots (s :debug t)
       (gp-setup :output path
                 :terminal :png
                 :key '(:bottom :right :font "Times New Roman, 6")
                 :pointsize "0.4px")
+      (format s "~&set label 1 \"aaaaa\" at graph 0.8,0.8 center")
       (func-plot "sin(x)" :title "super sin curve!")
-      (format t "~&set label \"1\" at graph 0.2,0.2 center")
+      ;; once something has been plotted, everything written to the stream
+      ;; is moved to the end of the script
+      (format s "~&set label 2 \"bbbbbb\" at graph 0.2,0.2 center")
       (plot (lambda ()
-              (format t "~&0 0")
-              (format t "~&1 1"))
+              (format s "~&0 0")
+              (format s "~&1 1"))
             :using '(1 2)
             :title "1"
             :with '(:linespoint))
-      (format t "~&set label \"2\" at graph 0.5,0.5 center")
+      (format s "~&set label 3 \"ccccccccc\" at graph 0.2,0.2 center")
       (plot (lambda ()
-              (format t "~&0 1")
-              (format t "~&1 0"))
+              (format s "~&0 1")
+              (format s "~&1 0"))
             :using '(1 2)
             :title "2"
             :with '(:lines))
-      (format t "~&set label \"3\" at graph 0.8,0.8 center"))))
+      (format s "~&set label 4 \"ddddd\" at graph 0.2,0.2 center"))))
