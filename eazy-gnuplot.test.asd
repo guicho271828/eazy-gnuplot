@@ -20,4 +20,4 @@
   :components ((:module "t"
                 :components
                 ((:file "package"))))
-  :perform (load-op :after (op c) (PROGN (EVAL (READ-FROM-STRING "(fiveam:run! :eazy-gnuplot)")) (CLEAR-SYSTEM C))))
+  :perform (test-op :after (op c) (PROGN (EVAL (READ-FROM-STRING "(fiveam:run! :eazy-gnuplot)")) (CLEAR-SYSTEM C))))

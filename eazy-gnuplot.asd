@@ -16,7 +16,7 @@
 
 
 (defsystem eazy-gnuplot
-  :version "0.1"
+  :version "0.2.0"
   :author "Masataro Asai"
   :mailto "guicho2.71828@gmail.com"
   :license "LLGPL"
@@ -42,4 +42,4 @@
           (setf (fill-pointer seq) (read-sequence seq stream))
           seq)))
   
-  :in-order-to ((test-op (load-op eazy-gnuplot.test))))
+  :in-order-to ((test-op (test-op eazy-gnuplot.test))))
