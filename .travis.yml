@@ -8,7 +8,7 @@ addons:
       - clisp
       - openjdk-7-jre
       - gnuplot
-      - libfixposix2
+      - libfixposix0
       - libfixposix-dev
 
 env:
