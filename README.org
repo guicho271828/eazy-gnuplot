@@ -1,10 +1,15 @@
 
 * Eazy-Gnuplot 
 
-Super Duper Doopa Booka Lispy Gnuplot library
+Super Duper Doopa Booka Lispy Gnuplot library 
 
 - Structure-less -- no CFFI, no CLOS, no STRUCTURE 
 - Just print the data to the =*standard-output*= inside =plot= function
+
+Build status:
+
++ master: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg]]
++ develop: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
 
 ** Usage
 
@@ -67,6 +72,9 @@ end
 end
 #+END_SRC
 
+When the script contains some error and gnuplot finishes with non-zero value,
+it signals UIOP:SUBPROCESS-ERROR .
+
 ** Dependencies
 
 This library is at least tested on implementation listed below:
@@ -83,9 +91,6 @@ Also, it depends on the following libraries:
 
 + ALEXANDRIA by  ::
     Alexandria is a collection of portable public domain utilities.
-
-+ TRIVIAL-SHELL by Gary Warren King <gwking@metabang.com> ::
-    OS and Implementation independent access to the shell
 
 ** Author
 
