@@ -3,6 +3,9 @@
 #|
 exec ros -Q -- $0 "$@"
 |#
+
+(ql:quickload :fiveam)
+
 (defun test (sys)
   (handler-case
       (progn
