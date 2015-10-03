@@ -112,13 +112,9 @@
                                                   (get-output-stream-string *plot-stream*)
                                                   (get-output-stream-string *data-stream*)
                                                   (get-output-stream-string after-plot-stream))))
-          (multiple-value-match 
-              (uiop:run-program *gnuplot-home*
-                                :input in
-                                :external-format external-format)
-            ((_ _ status)
-             (when (not (zerop status))
-               (error "gnuplot did not finish normally!"))))))))
+          (uiop:run-program *gnuplot-home*
+                            :input in
+                            :external-format external-format)))))
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
