@@ -11,8 +11,10 @@ addons:
 
 env:
   global:
-    - PATH=~/.roswell/bin:$PATH
+    - PATH=$HOME/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
+    - LFP=$HOME/libfixposix/
+    - CPATH=$LFP/src/include:$LFP/src/lib:$LFP/build/src/include
   matrix:
     - LISP=sbcl-bin
     - LISP=ccl-bin
@@ -32,8 +34,8 @@ matrix:
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
-  - git clone https://github.com/sionescu/libfixposix.git
-  - ./install-lfp.sh libfixposix
+  - git clone https://github.com/sionescu/libfixposix.git $HOME/libfixposix
+  - ./install-lfp.sh $HOME/libfixposix
 
 cache:
   directories:
