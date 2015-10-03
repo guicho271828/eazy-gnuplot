@@ -1,10 +1,15 @@
 
 * Eazy-Gnuplot 
 
-Super Duper Doopa Booka Lispy Gnuplot library
+Super Duper Doopa Booka Lispy Gnuplot library 
 
 - Structure-less -- no CFFI, no CLOS, no STRUCTURE 
 - Just print the data to the =*standard-output*= inside =plot= function
+
+Build status:
+
++ master: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg]]
++ develop: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
 
 ** Usage
 
