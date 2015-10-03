@@ -5,4 +5,5 @@ install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - ros -s prove -e '(or (prove:run :quri-test) (uiop:quit -1))'
+  - ros testscr.ros
+
