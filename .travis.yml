@@ -1,9 +1,46 @@
 language: common-lisp
-sudo: required
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - libc6-i386
+      - clisp
+      - openjdk-7-jre
+      - gnuplot
+
+env:
+  global:
+    - PATH=$HOME/.roswell/bin:$PATH
+    - ROSWELL_INSTALL_DIR=$HOME/.roswell
+    - LFP=$HOME/libfixposix/
+    - CPATH=$LFP/src/include:$LFP/src/lib:$LFP/build/src/include
+  matrix:
+    - LISP=sbcl-bin
+    - LISP=ccl-bin
+    - LISP=abcl
+    - LISP=clisp
+    - LISP=ecl
+    - LISP=cmucl
+    - LISP=alisp
+
+matrix:
+  allow_failures:
+    - env: LISP=clisp
+    - env: LISP=abcl
+    - env: LISP=ecl
+    - env: LISP=cmucl
+    - env: LISP=alisp
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
+  - git clone https://github.com/sionescu/libfixposix.git $HOME/libfixposix
+  - ./install-lfp.sh $HOME/libfixposix
+
+cache:
+  directories:
+    - $HOME/.roswell
+    - $HOME/.config/common-lisp
 
 script:
-  - ros testscr.ros
-
+  - ros test.ros
