@@ -121,7 +121,8 @@
     ((eq type *plot-type*)
      (format *plot-stream* ", ~a" string))
     (t
-     (error "Using incompatible plot type in a same figure!")))
+     (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
+            type *plot-type* type *plot-type*)))
 
   (remf args :type)
   (remf args :string)
