@@ -18,12 +18,18 @@
 ;; run test with (run! test-name) 
 ;;   test as you like ...
 
-(test eazy-gnuplot
+(def-fixture test-plot (out)
   (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "sample.pdf")))
+               :eazy-gnuplot.test out)))
     (print path)
+    (terpri)
     (when (probe-file path)
       (delete-file path))
+    (&body)
+    (is-true (probe-file path))))
+
+(test eazy-gnuplot
+  (with-fixture test-plot ("sample.pdf")
     (with-plots (*standard-output* :debug t)
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
@@ -46,14 +52,10 @@
               (format t "~&1 0"))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
 
 (test top-left-reverse-left
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "sample-top-left.pdf")))
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("sample-top-left.pdf")
     (with-plots (*standard-output* :debug t)
       (gp-setup :output path
                 :terminal :pdf
@@ -71,15 +73,10 @@
               (format t "~&1 0"))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
 
 (test no-stdout
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "nostdout.pdf")))
-    (print path)
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("nostdout.pdf")
     (with-plots (s :debug t)
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
@@ -102,15 +99,10 @@
               (format s "~&1 0"))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
 
 (test row
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "row.pdf")))
-    (print path)
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("row.pdf")
     (with-plots (*standard-output* :debug t)
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
@@ -133,15 +125,10 @@
               (row 1 0))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
 
 (test splot
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "splot.pdf")))
-    (print path)
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("splot.pdf")
     (with-plots (*standard-output* :debug t)
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
@@ -163,8 +150,7 @@
                          (row x y z)
                          (apply #'row (mapcar #'neg (list x y z))))
                        :title (format nil "~a~a~a" x y z)
-                       :with '(:lines))))))))
-  (is-true (probe-file path))))
+                       :with '(:lines))))))))))
 
 (test incompatible-plot
   (signals error
@@ -179,11 +165,7 @@
       (splot (lambda () (row 1 2 3))))))
 
 (test optional-arg
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "optional.pdf")))
-    (print path)
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("optional.pdf")
     (with-plots ()
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
@@ -206,15 +188,10 @@
               (format t "~&1 0"))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
 
 (test png
-  (let ((path (asdf:system-relative-pathname
-               :eazy-gnuplot.test "sample.png")))
-    (print path)
-    (when (probe-file path)
-      (delete-file path))
+  (with-fixture test-plot ("sample.png")
     (with-plots (*standard-output* :debug t)
       (gp-setup :output path
                 :terminal :png
@@ -232,5 +209,31 @@
               (format t "~&1 0"))
             :using '(1 2)
             :title "2"
-            :with '(:lines)))
-  (is-true (probe-file path))))
+            :with '(:lines)))))
+
+(test issue-8
+  (with-fixture test-plot ("issue-8.png")
+    (with-plots (s :debug t)
+      (gp-setup :output path
+                :terminal :png
+                :key '(:bottom :right :font "Times New Roman, 6")
+                :pointsize "0.4px")
+      (format s "~&set label 1 \"aaaaa\" at graph 0.8,0.8 center")
+      (func-plot "sin(x)" :title "super sin curve!")
+      ;; once something has been plotted, everything written to the stream
+      ;; is moved to the end of the script
+      (format s "~&set label 2 \"bbbbbb\" at graph 0.2,0.2 center")
+      (plot (lambda ()
+              (format s "~&0 0")
+              (format s "~&1 1"))
+            :using '(1 2)
+            :title "1"
+            :with '(:linespoint))
+      (format s "~&set label 3 \"ccccccccc\" at graph 0.2,0.2 center")
+      (plot (lambda ()
+              (format s "~&0 1")
+              (format s "~&1 0"))
+            :using '(1 2)
+            :title "2"
+            :with '(:lines))
+      (format s "~&set label 4 \"ddddd\" at graph 0.2,0.2 center"))))
