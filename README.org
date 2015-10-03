@@ -75,6 +75,24 @@ end
 When the script contains some error and gnuplot finishes with non-zero value,
 it signals UIOP:SUBPROCESS-ERROR .
 
+** Use the GUI terminals e.g. WXT, QT
+
+You can even try a wxt terminal or qt terminal and see the GUI interactively.
+
+#+BEGIN_SRC lisp
+(eazy-gnuplot:with-plots (*standard-output* :debug t)
+  (eazy-gnuplot:gp-setup :terminal '(:qt))
+  (eazy-gnuplot:plot (lambda ()
+                       (format t "~&~A ~A" 1 2)
+                       (format t "~&~A ~A" 2 5)
+                       (format t "~&~A ~A" 3 4)))
+  (format t "~&pause mouse button1;~%"))
+#+END_SRC
+
+However, these options may not be available on older versions of gnuplot.
+QT terminal is supported from gnuplot-4.6.
+WXT terminal has a known bug which leaves a zombie process until gnuplot-4.6.
+
 ** Dependencies
 
 This library is at least tested on implementation listed below:
