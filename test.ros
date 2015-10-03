@@ -5,6 +5,11 @@ exec ros -Q -- $0 "$@"
 |#
 
 (ql:quickload :fiveam)
+(ql:quickload :cffi)
+
+(let ((lfp (merge-pathnames "libfixposix/build/src/lib/.libs/")))
+  (print lfp)
+  (push lfp cffi:*foreign-library-directories*))
 
 (defun test (sys)
   (handler-case

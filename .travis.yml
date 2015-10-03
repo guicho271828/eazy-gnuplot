@@ -8,8 +8,6 @@ addons:
       - clisp
       - openjdk-7-jre
       - gnuplot
-      - libfixposix0
-      - libfixposix-dev
 
 env:
   global:
@@ -34,6 +32,8 @@ matrix:
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
+  - git clone https://github.com/sionescu/libfixposix.git
+  - ./install-lfp.sh libfixposix
 
 cache:
   directories:
