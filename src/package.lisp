@@ -17,6 +17,8 @@
   (:export :with-plots
            :func-plot
            :func-splot
+           :datafile-plot
+           :datafile-splot
            :plot
            :splot
            :gp-setup
@@ -154,6 +156,12 @@
 (defun func-splot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (apply #'func-plot string :type :splot args))
+(defun datafile-plot (string &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
+  (apply #'%plot nil :string (format nil "'~a'" string) args))
+(defun datafile-splot (string &rest args &key using &allow-other-keys)
+  (declare (ignorable using))
+  (apply #'data-plot string :type :splot args))
 
 (defun row (&rest args)
   "Write a row"
