@@ -59,60 +59,77 @@
                    &allow-other-keys)
   (let ((*print-case* :downcase))
     (unless terminal-p
-      (format *plot-stream* "~&set ~a ~a" :terminal (gp-quote terminal)))
+      (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal)))
     (unless output-p
-      (format *plot-stream* "~&set ~a ~a" :output (gp-quote output)))
+      (format *user-stream* "~&set ~a ~a" :output (gp-quote output)))
     (gp-map-args args
                  (lambda (key val)
-                   (format *plot-stream* "~&set ~a ~a"
+                   (format *user-stream* "~&set ~a ~a"
                            key (gp-quote val))))))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
                        &key debug (external-format :default))
                       &body body)
-  (assert (symbolp stream))
-  (once-only (debug)
-    (with-gensyms (output-string-stream)
-      `(let* ((,output-string-stream (make-string-output-stream))
-              (*plot-stream* (if ,debug
-                                 (make-broadcast-stream ,output-string-stream
-                                                        *error-output*)
-                                 ,output-string-stream))
-              (,stream (make-synonym-stream '*plot-stream*)))
-         (call-with-plots *plot-stream*
-                          ,output-string-stream
-                          ,external-format
-                          (lambda () ,@body))))))
+  (check-type stream symbol)
+  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
 
+(defvar *user-stream*)
 (defvar *plot-stream*)
+(defvar *data-stream*)
 (defvar *plot-type*)
-(defvar *data-strings*)
-(defun call-with-plots (*plot-stream*
-                        output-string-stream
-                        external-format
-                        body)
-  (let ((*data-strings* nil)
-        (*plot-type* nil)
-        (*print-case* :downcase))
-    (funcall body)
-    (map nil
-         (lambda (str) (write-sequence str *plot-stream*))
-         (nreverse *data-strings*)))
-  ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-  (format *plot-stream* "~&set output")
-  (multiple-value-bind (stdout stderr status)
-      (shell-command
-       *gnuplot-home*
-       :input (get-output-stream-string output-string-stream)
-       #-(and ccl linux)
-       :verbose t
-       #-(and ccl linux)
-       :external-format external-format)
-    (when status
-      (when (not (zerop (first status)))
-        (error "gnuplot did not finish normally!")))))
 
+(define-condition new-plot () ())
+
+;; (flet ((debugged-stream (stream)
+;;          (if debug
+;;              (make-broadcast-stream stream *error-output*)
+;;              stream))
+;;        (get-debugged-string (stream)
+;;          (get-output-stream-string
+;;           (match stream
+;;             ((broadcast-stream (streams (list s _))) s)
+;;             (_ stream)))))
+
+
+(defun call-with-plots (external-format debug body)
+    (let ((*plot-type* nil)
+          (*print-case* :downcase)
+          (before-plot-stream (make-string-output-stream))
+          (after-plot-stream (make-string-output-stream))
+          (*data-stream* (make-string-output-stream))
+          (*plot-stream* (make-string-output-stream)))
+      (let ((*user-stream* before-plot-stream))
+        (handler-bind ((new-plot
+                        (lambda (c)
+                          (declare (ignore c))
+                          (setf *user-stream* after-plot-stream)
+                          ;; ensure there is a newline
+                          (terpri after-plot-stream))))
+          (funcall body (make-synonym-stream '*user-stream*))
+          ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
+          (format after-plot-stream "~&set output"))
+        (multiple-value-bind (stdout stderr status)
+            (shell-command
+             *gnuplot-home*
+             :input 
+             ((lambda (str)
+                (if debug
+                    (print str *error-output*)
+                    str))
+              (concatenate 'string
+                           (get-output-stream-string before-plot-stream)
+                           (get-output-stream-string *plot-stream*)
+                           (get-output-stream-string *data-stream*)
+                           (get-output-stream-string after-plot-stream)))
+             #-(and ccl linux)
+             :verbose t
+             #-(and ccl linux)
+             :external-format external-format)
+          (declare (ignorable stderr stdout))
+          (when status
+            (when (not (zerop (first status)))
+              (error "gnuplot did not finish normally!")))))))
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
@@ -135,14 +152,15 @@
        ((list :using (and val (type list)))
         (format *plot-stream* " using ~{~a~^:~}" val))
        ((list key val)
-        (format *plot-stream* " ~a ~a"
-                key (gp-quote val))))))
-  (push (with-output-to-string (*plot-stream*)
-          (when (functionp data-producing-fn)
-            (terpri *plot-stream*)
-            (funcall data-producing-fn)
-            (format *plot-stream* "~&end")))
-        *data-strings*))
+        (format *plot-stream* " ~a ~a" key (gp-quote val))))))
+
+  (signal 'new-plot)
+
+  (when (functionp data-producing-fn)
+    (terpri *data-stream*)
+    (let ((*user-stream* *data-stream*))
+      (funcall data-producing-fn))
+    (format *data-stream* "~&end")))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
@@ -152,18 +170,20 @@
   (apply #'plot data-producing-fn :type :splot args))
 (defun func-plot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
+  (check-type string string)
   (apply #'%plot nil :string string args))
 (defun func-splot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (apply #'func-plot string :type :splot args))
-(defun datafile-plot (string &rest args &key using &allow-other-keys)
+(defun datafile-plot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (apply #'%plot nil :string (format nil "'~a'" string) args))
-(defun datafile-splot (string &rest args &key using &allow-other-keys)
+  (check-type pathspec (or pathname string))
+  (apply #'%plot nil :string (format nil "'~a'" (pathname pathspec)) args))
+(defun datafile-splot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (apply #'data-plot string :type :splot args))
+  (apply #'datafile-plot pathspec :type :splot args))
 
 (defun row (&rest args)
   "Write a row"
-  (format *plot-stream* "~&~{~a~^ ~}" args))
+  (format *user-stream* "~&~{~a~^ ~}" args))
 
