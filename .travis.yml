@@ -5,5 +5,5 @@ install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - ros testscr.ros
+  - ros test.ros
 
