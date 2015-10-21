@@ -47,16 +47,23 @@
       (funcall fn key value)
       (map-plist rest fn))))
 
-(defun gp-setup (&rest args
-                 &key
-                   (terminal :pdf terminal-p)
-                   (output nil output-p)
-                   &allow-other-keys)
+(defun gp-setup (&rest args &key terminal output &allow-other-keys)
   (let ((*print-case* :downcase))
-    (unless terminal-p
-      (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal)))
-    (unless output-p
-      (format *user-stream* "~&set ~a ~a" :output (gp-quote output)))
+    (unless output
+      (error "missing ouptut!"))
+    (when (null terminal)
+      (ematch (pathname-type (pathname output))
+        ((and type (or :unspecific :wild nil "*"))
+         (error "gp-setup is missing :terminal, and ~
+                 it failed to guess the terminal type from the output pathname ~a,
+                 based on its pathname-type ~a"
+                output type))
+        ((and type (type string)) 
+         (setf terminal (make-keyword type)))))
+    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
+    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
+    (remf args :terminal)
+    (remf args :output)
     (map-plist args
                (lambda (key val)
                  (format *user-stream* "~&set ~a ~a"
@@ -75,17 +82,6 @@
 (defvar *plot-type*)
 
 (define-condition new-plot () ())
-
-;; (flet ((debugged-stream (stream)
-;;          (if debug
-;;              (make-broadcast-stream stream *error-output*)
-;;              stream))
-;;        (get-debugged-string (stream)
-;;          (get-output-stream-string
-;;           (match stream
-;;             ((broadcast-stream (streams (list s _))) s)
-;;             (_ stream)))))
-
 
 (defun call-with-plots (external-format debug body)
     (let ((*plot-type* nil)
