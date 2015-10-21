@@ -140,12 +140,13 @@
         (format *plot-stream* " ~a ~a" key (gp-quote val))))))
 
   (signal 'new-plot)
-
-  (when (functionp data-producing-fn)
-    (terpri *data-stream*)
-    (let ((*user-stream* *data-stream*))
-      (funcall data-producing-fn))
-    (format *data-stream* "~&end")))
+  (loop for i in args 
+        when (eql i :using)
+          do (when (functionp data-producing-fn)
+               (terpri *data-stream*)
+               (let ((*user-stream* *data-stream*))
+                 (funcall data-producing-fn))
+               (format *data-stream* "~&end~%"))))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
