@@ -33,8 +33,9 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
-    (when (probe-file path)
-      (delete-file path))
+    (ignore-errors
+      (when (probe-file path)
+        (delete-file path)))
     (&body)))
 
 (test eazy-gnuplot
