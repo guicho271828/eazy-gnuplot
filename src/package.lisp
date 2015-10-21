@@ -41,7 +41,7 @@
     ;; numbers etc
     (_ value)))
 
-(defun gp-map-args (args fn)
+(defun map-plist (args fn)
   (iter (for keyword in args by #'cddr)
         (for value in (cdr args) by #'cddr)
         (funcall fn keyword value)))
@@ -56,10 +56,10 @@
       (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal)))
     (unless output-p
       (format *user-stream* "~&set ~a ~a" :output (gp-quote output)))
-    (gp-map-args args
-                 (lambda (key val)
-                   (format *user-stream* "~&set ~a ~a"
-                           key (gp-quote val))))))
+    (map-plist args
+               (lambda (key val)
+                 (format *user-stream* "~&set ~a ~a"
+                         key (gp-quote val))))))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
@@ -134,7 +134,7 @@
   
   ;; process arguments
   (let ((first-using t))
-    (gp-map-args
+    (map-plist
      args
      (lambda (&rest args)
        (match args
