@@ -1,21 +1,22 @@
 
-* Eazy-Gnuplot 
+* Eazy-Gnuplot [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg]]
 
-Super Duper Doopa Booka Lispy Gnuplot library 
+Lispy Gnuplot library
 
 - Structure-less -- no CFFI, no CLOS, no STRUCTURE 
 - Just print the data to the =*standard-output*= inside =plot= function
 
-Build status:
+Build status on =develop=: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
 
-+ master: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg]]
-+ develop: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
+News: Supports a single datafile with multiple =:using= options. Plotting made more efficient. [Oct 2015]
 
 ** Usage
 
 Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
 =gp-setup= can set any attributes -- mighty
 =&allow-other-keys=. /no compatibility issue re: different gnuplot!/.
+
+For more examples, see the tests in =t/package.lisp=.
 
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
@@ -38,7 +39,9 @@ Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
    ;; unsupported commands can also be used by printing to the stream
    (format t "~%unset keys")
 
+   ;; Functions can be protted with func-plot
    (func-plot "sin(x)" :title "super sin curve!")
+   ;; Plot a lisp data directly
    (plot (lambda ()
            (format t "~&0 0")
            (format t "~&1 1"))
@@ -75,6 +78,8 @@ end
 When the script contains some error and gnuplot finishes with non-zero value,
 it signals UIOP:SUBPROCESS-ERROR .
 
+* Advanced Usage
+
 ** Use the GUI terminals e.g. WXT, QT
 
 You can even try a wxt terminal or qt terminal and see the GUI interactively.
@@ -92,6 +97,14 @@ You can even try a wxt terminal or qt terminal and see the GUI interactively.
 However, these options may not be available on older versions of gnuplot.
 QT terminal is supported from gnuplot-4.6.
 WXT terminal has a known bug which leaves a zombie process until gnuplot-4.6.
+
+** Plotting a file
+
+Use =datafile-plot= (2D) / =datafile-splot= (3D) instead of =plot= / =splot=.
+
+#+BEGIN_SRC lisp
+(datafile-plot "some.dat" :using '(2 3) :title "data")
+#+END_SRC
 
 ** Dependencies
 
