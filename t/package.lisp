@@ -238,7 +238,7 @@
             :with '(:lines))
       (format s "~&set label 4 \"ddddd\" at graph 0.2,0.2 center"))))
 
-(test issue-10-multi-using
+(test issue-12-multi-using
   (with-fixture test-plot ("issue-10-multi-using.png")
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
       (eazy-gnuplot:gp-setup :output path
@@ -264,7 +264,7 @@
   )
     ))
 
-(test issue-10-no-using
+(test issue-12-no-using
   (with-fixture test-plot ("issue-10-no-using.png")
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
   (eazy-gnuplot:gp-setup :output path
