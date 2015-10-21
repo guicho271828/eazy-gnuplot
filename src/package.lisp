@@ -41,10 +41,11 @@
     ;; numbers etc
     (_ value)))
 
-(defun gp-map-args (args fn)
-  (iter (for keyword in args by #'cddr)
-        (for value in (cdr args) by #'cddr)
-        (funcall fn keyword value)))
+(defun map-plist (args fn)
+  (when args
+    (destructuring-bind (key value . rest) args
+      (funcall fn key value)
+      (map-plist rest fn))))
 
 (defun gp-setup (&rest args
                  &key
@@ -56,10 +57,10 @@
       (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal)))
     (unless output-p
       (format *user-stream* "~&set ~a ~a" :output (gp-quote output)))
-    (gp-map-args args
-                 (lambda (key val)
-                   (format *user-stream* "~&set ~a ~a"
-                           key (gp-quote val))))))
+    (map-plist args
+               (lambda (key val)
+                 (format *user-stream* "~&set ~a ~a"
+                         key (gp-quote val))))))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
@@ -118,6 +119,7 @@
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
+  ;; print the filename
   (cond
     ((null *plot-type*)
      (format *plot-stream* "~%~a ~a" type string)
@@ -130,22 +132,28 @@
 
   (remf args :type)
   (remf args :string)
-  (gp-map-args
-   args
-   (lambda (&rest args)
-     (match args
-       ((list :using (and val (type list)))
-        (format *plot-stream* " using ~{~a~^:~}" val))
-       ((list key val)
-        (format *plot-stream* " ~a ~a" key (gp-quote val))))))
+  
+  ;; process arguments
+  (let ((first-using t))
+    (map-plist
+     args
+     (lambda (&rest args)
+       (match args
+         ((list :using (and val (type list)))
+          (format *plot-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
+          (setf first-using nil))
+         ((list :using (and val (type atom)))
+          (format *plot-stream* "~:[, ''~;~] using ~a" first-using val)
+          (setf first-using nil))
+         ((list key val)
+          (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-
   (when (functionp data-producing-fn)
     (terpri *data-stream*)
     (let ((*user-stream* *data-stream*))
       (funcall data-producing-fn))
-    (format *data-stream* "~&end")))
+    (format *data-stream* "~&end~%")))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))

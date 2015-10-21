@@ -237,3 +237,41 @@
             :title "2"
             :with '(:lines))
       (format s "~&set label 4 \"ddddd\" at graph 0.2,0.2 center"))))
+
+(test issue-12-multi-using
+  (with-fixture test-plot ("issue-10-multi-using.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path
+                             :terminal :png
+                             :title "Test Issue 10"
+                             :key '( invert reverse Left outside)
+                             :key '( autotitle columnheader)
+                             :style '( data histogram)
+                             :style '( histogram rowstacked)
+                             :style '( fill solid border -1))
+      (plot (lambda ()
+              (loop for r in '(( 8.01   1   5   1)
+                               ( 8.02   3   5   1)
+                               ( 8.03   4   4   1)
+                               ( 8.04   3   4   1)
+                               ( 8.05   1   2   1))
+                    do (format t "~&~{~^~A ~}" r)))
+            :using '(2 "xtic(1)")
+            :title "Col0"
+            :using 2
+            :title "Col1"
+            :using 3
+            :title "Col2"
+            :using 4
+            :title "Col3"))))
+
+(test issue-12-no-using
+  (with-fixture test-plot ("issue-10-no-using.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path
+                             :terminal :png
+                             :style '(fill pattern 5))
+      (plot (lambda () (loop for i from 0 upto 50
+                             do (format t "~&~A ~A"  i (sin i))))
+            :lt '(rgb "blue")
+            :with '(:filledcurves :above :y1 = 0.07)))))
