@@ -145,11 +145,17 @@
           (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-  (when (functionp data-producing-fn)
-    (terpri *data-stream*)
-    (let ((*user-stream* *data-stream*))
-      (funcall data-producing-fn))
-    (format *data-stream* "~&end~%")))
+  (flet ((plt () (when (functionp data-producing-fn)
+                 (terpri *data-stream*)
+                 (let ((*user-stream* *data-stream*))
+                   (funcall data-producing-fn))
+                 (format *data-stream* "~&end~%"))))
+      (if (> (loop for i in args count (eql i :using)) 0)
+          (loop for i in args 
+                when (eql i :using)
+                  do (funcall #'plt))
+          (funcall #'plt)))
+  )
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
