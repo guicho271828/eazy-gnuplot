@@ -42,9 +42,10 @@
     (_ value)))
 
 (defun map-plist (args fn)
-  (iter (for keyword in args by #'cddr)
-        (for value in (cdr args) by #'cddr)
-        (funcall fn keyword value)))
+  (when args
+    (destructuring-bind (key value . rest) args
+      (funcall fn key value)
+      (map-plist rest fn))))
 
 (defun gp-setup (&rest args
                  &key
