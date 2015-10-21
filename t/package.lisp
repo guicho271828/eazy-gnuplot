@@ -28,6 +28,15 @@
     (&body)
     (is-true (probe-file path))))
 
+(def-fixture just-plot (out)
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test out)))
+    (print path)
+    (terpri)
+    (when (probe-file path)
+      (delete-file path))
+    (&body)))
+
 (test eazy-gnuplot
   (with-fixture test-plot ("sample.pdf")
     (with-plots (*standard-output* :debug t)
@@ -275,3 +284,35 @@
                              do (format t "~&~A ~A"  i (sin i))))
             :lt '(rgb "blue")
             :with '(:filledcurves :above :y1 = 0.07)))))
+
+(test issue-14-guess-terminal-type
+  (with-fixture test-plot ("issue-14-guess-terminal-type.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (func-plot "sin(x)")))
+  (with-fixture test-plot ("issue-14-guess-terminal-type.pdf")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (func-plot "sin(x)")))
+  (with-fixture test-plot ("issue-14-guess-terminal-type.svg")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (func-plot "sin(x)")))
+  (with-fixture just-plot ("issue-14-guess-terminal-type") ; no pathname-type, or unspecified
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (signals error
+        (eazy-gnuplot:gp-setup :output path))))
+  (with-fixture just-plot ("issue-14-guess-terminal-type.*") ; wild
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (signals error
+        (eazy-gnuplot:gp-setup :output path))))
+  (with-fixture just-plot ("issue-14-guess-terminal-type.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (signals error
+        ;; missing output
+        (eazy-gnuplot:gp-setup))))
+  (with-fixture just-plot ("issue-14-guess-terminal-type.nosuchterminal")
+    (signals uiop:subprocess-error
+      (eazy-gnuplot:with-plots (*standard-output* :debug t)
+        ;; missing output
+        (eazy-gnuplot:gp-setup :output path)))))
