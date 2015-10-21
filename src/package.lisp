@@ -118,6 +118,7 @@
 
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
+  ;; print the filename
   (cond
     ((null *plot-type*)
      (format *plot-stream* "~%~a ~a" type string)
@@ -130,23 +131,28 @@
 
   (remf args :type)
   (remf args :string)
-  (gp-map-args
-   args
-   (lambda (&rest args)
-     (match args
-       ((list :using (and val (type list)))
-        (format *plot-stream* " using ~{~a~^:~}" val))
-       ((list key val)
-        (format *plot-stream* " ~a ~a" key (gp-quote val))))))
+  
+  ;; process arguments
+  (let ((first-using t))
+    (gp-map-args
+     args
+     (lambda (&rest args)
+       (match args
+         ((list :using (and val (type list)))
+          (format *plot-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
+          (setf first-using nil))
+         ((list :using (and val (type atom)))
+          (format *plot-stream* "~:[, ''~;~] using ~a" first-using val)
+          (setf first-using nil))
+         ((list key val)
+          (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-  (loop for i in args 
-        when (eql i :using)
-          do (when (functionp data-producing-fn)
-               (terpri *data-stream*)
-               (let ((*user-stream* *data-stream*))
-                 (funcall data-producing-fn))
-               (format *data-stream* "~&end~%"))))
+  (when (functionp data-producing-fn)
+    (terpri *data-stream*)
+    (let ((*user-stream* *data-stream*))
+      (funcall data-producing-fn))
+    (format *data-stream* "~&end~%")))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
