@@ -83,17 +83,6 @@
 
 (define-condition new-plot () ())
 
-;; (flet ((debugged-stream (stream)
-;;          (if debug
-;;              (make-broadcast-stream stream *error-output*)
-;;              stream))
-;;        (get-debugged-string (stream)
-;;          (get-output-stream-string
-;;           (match stream
-;;             ((broadcast-stream (streams (list s _))) s)
-;;             (_ stream)))))
-
-
 (defun call-with-plots (external-format debug body)
     (let ((*plot-type* nil)
           (*print-case* :downcase)
