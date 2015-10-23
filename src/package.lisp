@@ -88,11 +88,11 @@ parameter style..
 - Return:
   NIL
 "
-  (let ((*print-case* :downcase))
-    (map-plist args
-               (lambda (key val)
-                 (format *user-stream* "~&set ~a ~a"
-                         key (gp-quote val))))))
+  (map-plist args
+             (lambda (key val)
+               (format *user-stream* "~&set ~a ~a"
+                       key (gp-quote val)))))
+
 (defun gp-unset (&rest args)
   "unsets gnuplot parameters based upon contents of function arguments
 parameter style..
