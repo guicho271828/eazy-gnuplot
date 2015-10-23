@@ -18,6 +18,7 @@
            :gp-setup
            :gp-set
            :gp-unset
+           :gp-quote
            :*gnuplot-home*
            :row))
 (in-package :eazy-gnuplot)
@@ -32,6 +33,7 @@
   (defvar *plot-type-multiplot*)
 
 (defun gp-quote (value)
+  "Map a value to the corresponding gnuplot string"
   (match value
     ((type string) (format nil "\"~a\"" value))
     ((type pathname) (gp-quote (namestring value)))
@@ -74,41 +76,41 @@
     (remf args :output)
     (apply #'gp-set args)))
 
-(defun gp-set (&rest args)
+(defun gp-set (&rest args &key &allow-other-keys)
   "Set gnuplot parameters based upon contents of function arguments supplied in keyword
-parameter style..
+parameter style.
    For example:
       (gp-set :title \"My plot\" :xlabel \"X\")
    Generates
      set title \"My Plot\"
-     set xlabel \"x
+     set xlabel \"X\"
 
 - Arguments:
-  - args : Keword arguments with gnuplot assignments
+  - args : Keyword arguments with gnuplot assignments, quoted by gp-quote.
 - Return:
   NIL
 "
-  (let ((*print-case* :downcase))
-    (map-plist args
-               (lambda (key val)
-                 (format *user-stream* "~&set ~a ~a"
-                         key (gp-quote val))))))
+  (map-plist args
+             (lambda (key val)
+               (format *user-stream* "~&set ~a ~a"
+                       key (gp-quote val)))))
+
 (defun gp-unset (&rest args)
-  "unsets gnuplot parameters based upon contents of function arguments
-parameter style..
+  "Unsets gnuplot parameters based upon contents of function arguments
+parameter style.
    For example:
-      (gp-unset 'title \"xlabel\")
+      (gp-unset 'title :xlabel)
    Generates
      unset title
      unset xlabel
 
 - Arguments:
-  - args : list of gnuplot variables
+  - args : list of symbols designating gnuplot variables.
 - Return:
   NIL
 "
-  (let ((*print-case* :downcase))
-    (format *user-stream* "~&~{~^unset ~a~%~}~%" args)))
+  (assert (every #'symbolp args))
+  (format *user-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
