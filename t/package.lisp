@@ -228,25 +228,27 @@
                 :terminal :png
                 :key '(:bottom :right :font "Times New Roman, 6")
                 :pointsize "0.4px")
-      (format s "~&set label 1 \"aaaaa\" at graph 0.8,0.8 center")
+      (gp-set :label '(1 \"aaaaa\" at graph "0.8,0.8" center)
+              :label '(3 \"ccccccccc\" at graph "0.2,0.2" center)
+              :label '(4 \"ddddd\" at graph " 0.2,0.2" center)
+              )
+      
       (func-plot "sin(x)" :title "super sin curve!")
       ;; once something has been plotted, everything written to the stream
       ;; is moved to the end of the script
-      (format s "~&set label 2 \"bbbbbb\" at graph 0.2,0.2 center")
       (plot (lambda ()
               (format s "~&0 0")
               (format s "~&1 1"))
             :using '(1 2)
             :title "1"
             :with '(:linespoint))
-      (format s "~&set label 3 \"ccccccccc\" at graph 0.2,0.2 center")
       (plot (lambda ()
               (format s "~&0 1")
               (format s "~&1 0"))
             :using '(1 2)
             :title "2"
             :with '(:lines))
-      (format s "~&set label 4 \"ddddd\" at graph 0.2,0.2 center"))))
+      )))
 
 (test issue-12-multi-using
   (with-fixture test-plot ("issue-10-multi-using.png")
@@ -317,3 +319,64 @@
       (eazy-gnuplot:with-plots (*standard-output* :debug t)
         ;; missing output
         (eazy-gnuplot:gp-setup :output path)))))
+
+(test multiplot
+  (with-fixture test-plot ("multiplot.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path
+                             :title "Multiplot"
+                             :multiplot (list "layout 2,2 columnsfirst title \"Multiplot\"")
+                             )
+      (func-plot "besj0(x)")
+      (func-plot "besj1(x)")
+      (func-plot "besy0(x)")
+      (func-plot "besy1(x)")
+      (gp-unset 'multiplot)
+      )))
+
+(test multiplot-w/data-producing-functions
+  (with-fixture test-plot ("multiplot-with-data-producing-functions.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+       (eazy-gnuplot:gp-setup :output path
+                              :terminal :png
+                              :title "Test Issue 10"
+                              :key '( invert reverse Left outside)
+                              :key '( autotitle columnheader)
+                              :style '( data histogram)
+                              :style '( histogram rowstacked)
+                              :style '( fill solid border -1)
+                              :multiplot (list "layout 2,2 columnsfirst title \"Multiplot\""))
+      (plot (lambda ()
+              (loop for r in '(( 8.1   1   5   1)
+                               ( 8.2   3   5   1)
+                               ( 8.3   4   4   1)
+                               ( 8.4   3   4   1)
+                               ( 8.5   1   2   1))
+                    do (format t "~&~{~^~A ~}" r)))
+            :using '(2 "xtic(1)")
+            :title "Col0"
+            :using 2
+            :title "Col1"
+            :using 3
+            :title "Col2"
+            :using 4
+            :title "Col3")
+        (plot (lambda ()
+              (loop for r in '(( 8.1   1   5   1)
+                               ( 8.2   3   5   1)
+                               ( 8.3   4   4   1)
+                               ( 8.4   3   4   1)
+                               ( 8.5   1   2   1))
+                    do (format t "~&~{~^~A ~}" r)))
+            :using '(2 "xtic(1)")
+            :title "Col0"
+            :using 2
+            :title "Col1"
+            :using 3
+            :title "Col2"
+            :using 4
+            :title "Col3")
+      (func-plot "besy0(x)")
+      (func-plot "besy1(x)")
+        (gp-unset 'multiplot))))
+
