@@ -18,6 +18,7 @@
            :gp-setup
            :gp-set
            :gp-unset
+           :gp-quote
            :*gnuplot-home*
            :row))
 (in-package :eazy-gnuplot)
@@ -32,6 +33,7 @@
   (defvar *plot-type-multiplot*)
 
 (defun gp-quote (value)
+  "Map a value to the corresponding gnuplot string"
   (match value
     ((type string) (format nil "\"~a\"" value))
     ((type pathname) (gp-quote (namestring value)))
