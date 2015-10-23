@@ -74,7 +74,7 @@
     (remf args :output)
     (apply #'gp-set args)))
 
-(defun gp-set (&rest args)
+(defun gp-set (&rest args &key &allow-other-keys)
   "Set gnuplot parameters based upon contents of function arguments supplied in keyword
 parameter style.
    For example:
