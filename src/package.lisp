@@ -190,12 +190,10 @@ parameter style..
                      (let ((*user-stream* correct-stream))
                        (funcall data-producing-fn))
                      (format correct-stream "~&end~%"))))
-      (if (> (loop for i in args count (eql i :using)) 0)
-          (loop for i in args 
-                when (eql i :using)
-                  do (funcall #'plt))
-          (funcall #'plt))))
-  )
+      (let ((n (count :using args)))
+        (if (> n 0)
+            (loop repeat n do (plt))
+            (plt))))))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
