@@ -76,15 +76,15 @@
 
 (defun gp-set (&rest args)
   "Set gnuplot parameters based upon contents of function arguments supplied in keyword
-parameter style..
+parameter style.
    For example:
       (gp-set :title \"My plot\" :xlabel \"X\")
    Generates
      set title \"My Plot\"
-     set xlabel \"x
+     set xlabel \"X\"
 
 - Arguments:
-  - args : Keword arguments with gnuplot assignments
+  - args : Keyword arguments with gnuplot assignments, quoted by gp-quote.
 - Return:
   NIL
 "
