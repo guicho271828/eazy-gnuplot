@@ -110,9 +110,7 @@ parameter style..
   (let ((*print-case* :downcase))
     (format *user-stream* "~&~{~^unset ~a~%~}~%" args)))
 
-(defmacro with-plots ((&optional
-                       (stream '*standard-output*)
-                       &key debug (external-format :default))
+(defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
   (check-type stream symbol)
   `(let (*plot-type-multiplot*) (call-with-plots ,external-format ,debug (lambda (,stream) ,@body))))
