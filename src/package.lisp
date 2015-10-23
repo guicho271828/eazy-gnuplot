@@ -185,11 +185,13 @@ parameter style..
 
   (signal 'new-plot)
   (when (functionp data-producing-fn)
-    (let ((correct-stream (if *plot-type-multiplot* *plot-stream* *data-stream*)))
+    ;; ensure the function is called once
+    (let ((data (with-output-to-string (*user-stream*)
+                  (funcall data-producing-fn)))
+          (correct-stream (if *plot-type-multiplot* *plot-stream* *data-stream*)))
       (flet ((plt ()
                (terpri correct-stream)
-               (let ((*user-stream* correct-stream))
-                 (funcall data-producing-fn))
+               (write-sequence data correct-stream)
                (format correct-stream "~&end~%")))
         (let ((n (count :using args)))
           (if (> n 0)
