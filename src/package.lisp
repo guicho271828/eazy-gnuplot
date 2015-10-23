@@ -16,6 +16,8 @@
            :plot
            :splot
            :gp-setup
+           :gp-set
+           :gp-unset
            :*gnuplot-home*
            :row))
 (in-package :eazy-gnuplot)
@@ -23,6 +25,11 @@
 ;; gnuplot interface
 
 (defvar *gnuplot-home* "gnuplot")
+  (defvar *user-stream*)
+  (defvar *plot-stream*)
+  (defvar *data-stream*)
+  (defvar *plot-type*)
+  (defvar *plot-type-multiplot*)
 
 (defun gp-quote (value)
   (match value
@@ -60,26 +67,56 @@
                 output type))
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
+    (setf *plot-type-multiplot* (find :multiplot args))
     (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
     (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
     (remf args :terminal)
     (remf args :output)
+    (apply #'gp-set args)))
+
+(defun gp-set (&rest args)
+  "Set gnuplot parameters based upon contents of function arguments supplied in keyword
+parameter style..
+   For example:
+      (gp-set :title \"My plot\" :xlabel \"X\")
+   Generates
+     set title \"My Plot\"
+     set xlabel \"x
+
+- Arguments:
+  - args : Keword arguments with gnuplot assignments
+- Return:
+  NIL
+"
+  (let ((*print-case* :downcase))
     (map-plist args
                (lambda (key val)
                  (format *user-stream* "~&set ~a ~a"
                          key (gp-quote val))))))
+(defun gp-unset (&rest args)
+  "unsets gnuplot parameters based upon contents of function arguments
+parameter style..
+   For example:
+      (gp-unset 'title \"xlabel\")
+   Generates
+     unset title
+     unset xlabel
+
+- Arguments:
+  - args : list of gnuplot variables
+- Return:
+  NIL
+"
+  (let ((*print-case* :downcase))
+    (format *user-stream* "~&~{~^unset ~a~%~}~%" args)))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
                        &key debug (external-format :default))
                       &body body)
   (check-type stream symbol)
-  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
+  `(let (*plot-type-multiplot*) (call-with-plots ,external-format ,debug (lambda (,stream) ,@body))))
 
-(defvar *user-stream*)
-(defvar *plot-stream*)
-(defvar *data-stream*)
-(defvar *plot-type*)
 
 (define-condition new-plot () ())
 
@@ -113,15 +150,17 @@
                             :input in
                             :external-format external-format)))))
 
+
 (defun %plot (data-producing-fn &rest args
               &key (type :plot) string &allow-other-keys)
   ;; print the filename
   (cond
-    ((null *plot-type*)
+    ((or (null *plot-type*) *plot-type-multiplot*)
      (format *plot-stream* "~%~a ~a" type string)
      (setf *plot-type* type))
-    ((eq type *plot-type*)
-     (format *plot-stream* ", ~a" string))
+    ((and (eq type *plot-type*) (not *plot-type-multiplot*))
+     (format *plot-stream* ", ~a" string)
+     )
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
             type *plot-type* type *plot-type*)))
@@ -145,16 +184,17 @@
           (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-  (flet ((plt () (when (functionp data-producing-fn)
-                 (terpri *data-stream*)
-                 (let ((*user-stream* *data-stream*))
-                   (funcall data-producing-fn))
-                 (format *data-stream* "~&end~%"))))
+  (let ((correct-stream (if *plot-type-multiplot* *plot-stream* *data-stream*)))
+    (flet ((plt () (when (functionp data-producing-fn)
+                     (terpri correct-stream)
+                     (let ((*user-stream* correct-stream))
+                       (funcall data-producing-fn))
+                     (format correct-stream "~&end~%"))))
       (if (> (loop for i in args count (eql i :using)) 0)
           (loop for i in args 
                 when (eql i :using)
                   do (funcall #'plt))
-          (funcall #'plt)))
+          (funcall #'plt))))
   )
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
