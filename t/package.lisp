@@ -174,6 +174,8 @@
       (plot (lambda () (row 1 2)))
       (splot (lambda () (row 1 2 3))))))
 
+;; change of mind: I don't think its a good idea
+#+nil
 (test optional-arg
   (with-fixture test-plot ("optional.pdf")
     (with-plots ()

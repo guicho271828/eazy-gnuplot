@@ -112,9 +112,7 @@ parameter style.
   (assert (every #'symbolp args))
   (format *user-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
 
-(defmacro with-plots ((&optional
-                       (stream '*standard-output*)
-                       &key debug (external-format :default))
+(defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
   (check-type stream symbol)
   `(let (*plot-type-multiplot*) (call-with-plots ,external-format ,debug (lambda (,stream) ,@body))))
