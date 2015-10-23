@@ -94,8 +94,8 @@ parameter style.
                        key (gp-quote val)))))
 
 (defun gp-unset (&rest args)
-  "unsets gnuplot parameters based upon contents of function arguments
-parameter style..
+  "Unsets gnuplot parameters based upon contents of function arguments
+parameter style.
    For example:
       (gp-unset 'title \"xlabel\")
    Generates
