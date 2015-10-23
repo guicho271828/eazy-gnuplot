@@ -97,18 +97,18 @@ parameter style.
   "Unsets gnuplot parameters based upon contents of function arguments
 parameter style.
    For example:
-      (gp-unset 'title \"xlabel\")
+      (gp-unset 'title :xlabel)
    Generates
      unset title
      unset xlabel
 
 - Arguments:
-  - args : list of gnuplot variables
+  - args : list of symbols designating gnuplot variables.
 - Return:
   NIL
 "
-  (let ((*print-case* :downcase))
-    (format *user-stream* "~&~{~^unset ~a~%~}~%" args)))
+  (assert (every #'symbolp args))
+  (format *user-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
 
 (defmacro with-plots ((&optional
                        (stream '*standard-output*)
