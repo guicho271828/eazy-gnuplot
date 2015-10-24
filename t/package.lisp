@@ -392,8 +392,7 @@
               :size (list "1,.5")
               :border 0)
       (gp-unset :key
-                :tics
-                :raxis)
+                :tics)
       (func-plot "[pi:2*pi] -1" :lw 5 )
       (gp-set :title "###################"
               :origin (list "0,.5")
