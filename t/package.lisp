@@ -382,3 +382,24 @@
       (func-plot "besy1(x)")
         (gp-unset 'multiplot))))
 
+(test maintain-order-of-sets-unsets-issue-21
+  (with-fixture test-plot ("maintain-order-of-sets-unsets-issue-21.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+         (eazy-gnuplot:gp-setup :output path
+                                :multiplot (list ""))
+      (gp-set :title "O     O"
+              :polar '()
+              :size (list "1,.5")
+              :border 0)
+      (gp-unset :key
+                :tics
+                :raxis)
+      (func-plot "[pi:2*pi] -1" :lw 5 )
+      (gp-set :title "###################"
+              :origin (list "0,.5")
+              :size (list ".5, .5"))
+      (func-plot "-2*pi" :lw (list "2, .2") :with 'filledcurves)
+      (gp-set  :origin (list ".5, .5")
+               :title "###################")
+      (func-plot "1" :lw (list "2, .2") :with 'filledcurves)
+      (gp-unset 'multiplot))))
