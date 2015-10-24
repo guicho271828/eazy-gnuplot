@@ -18,6 +18,7 @@
            :gp-setup
            :gp-set
            :gp-unset
+           :gp-clear
            :gp-quote
            :*gnuplot-home*
            :row))
@@ -110,7 +111,16 @@ parameter style.
   NIL
 "
   (assert (every #'symbolp args))
-  (format *user-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
+  (format *plot-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
+
+(defun gp-clear ()
+  "gnuplot clear comannd
+- Arguments:
+
+- Return:
+  NIL
+"
+  (format *plot-stream* "~&clear~%"))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
