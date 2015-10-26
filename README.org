@@ -8,12 +8,15 @@ Lispy Gnuplot library
 
 Build status on =develop=: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
 
-News: Supports a single datafile with multiple =:using= options. Plotting made more efficient. [Oct 2015]
++ News :: Supports a single datafile with multiple =:using= options. Plotting made more efficient. [Oct 2015]
++ News :: Supports for Multiplot environment partially available.
++ News :: When :terminal is missing, eazy-gnuplot tries to guess its terminal type from the given pathname.
++ News :: Growing the list of interfaces available as functions. Still, "unsupported commands" can be directly printed to the stream.
 
 ** Usage
 
 Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
-=gp-setup= can set any attributes -- mighty
+=gp-setup= accepts and sets any attributes -- mighty
 =&allow-other-keys=. /no compatibility issue re: different gnuplot!/.
 
 For more examples, see the tests in =t/package.lisp=.
@@ -21,23 +24,28 @@ For more examples, see the tests in =t/package.lisp=.
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
 (with-plots (*standard-output* :debug t)
-   (gp-setup :xlabel "x-label"       ; strings are "quoted"
+   (gp-setup :xlabel "x-label"      ; strings : "\"x-label\""
              :ylabel "y-label"
-             :output path            ; pathnames are "quoted"
-             :terminal :pdf          ; keyword/symbols are not quoted
-                                     ; (but not escaped)
+             :output #p"sample.pdf" ; pathnames : "\"sample.pdf\""
+             :terminal :pdf         ; keyword/symbols: "terminal pdf"
+             
+             ;; list contents are recursively quoted, then joined by a space
              :key '(:bottom :right :font "Times New Roman, 6")
-             ;; list contents are recursively quoted
-             ;; then joined by a space
+             
              :pointsize "0.4px"
+             
              :yrange :|[0:1]|
-             ; currently, specifying these kinds of options requires to abuse
-             ; keywords and symbols. Another example: comma separated list.
-             ; :terminal '(:pdf :size |10cm,6cm|)
+             ;; currently, specifying these kinds of options requires to abuse
+             ;; keywords and symbols. Another example: comma separated list, e.g.,
+             ;; :terminal '(:pdf :size |10cm,6cm|)
              )
 
-   ;; unsupported commands can also be used by printing to the stream
+   ;; any unsupported commands are available by printing it to the stream
    (format t "~%unset keys")
+   
+   ;; We are extending its expressivity. For example, as of 39d60d, there is gp-unset and gp-set.
+   ;; An equivalent of above is (gp-unset :keys) .
+   ;; The list is growing!
 
    ;; Functions can be protted with func-plot
    (func-plot "sin(x)" :title "super sin curve!")
@@ -62,7 +70,7 @@ into gnuplot interpreter, resulting in [[https://raw.githubusercontent.com/guich
 #+BEGIN_SRC gnuplot
 set xlabel "x-label"
 set ylabel "y-label"
-set output "/mnt/video/guicho/repos/lisp/eazy-gnuplot/sample.pdf"
+set output "sample.pdf"
 set terminal pdf
 set key bottom right font "Times New Roman, 6"
 set pointsize "0.4px"
