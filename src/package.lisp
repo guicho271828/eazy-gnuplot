@@ -18,6 +18,7 @@
            :gp-setup
            :gp-set
            :gp-unset
+           :gp-clear
            :gp-quote
            :*gnuplot-home*
            :row))
@@ -56,7 +57,7 @@
       (funcall fn key value)
       (map-plist rest fn))))
 
-(defun gp-setup (&rest args &key terminal output &allow-other-keys)
+(defun gp-setup (&rest args &key terminal output multiplot &allow-other-keys)
   (let ((*print-case* :downcase))
     (unless output
       (error "missing ouptut!"))
@@ -69,9 +70,9 @@
                 output type))
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
-    (setf *plot-type-multiplot* (find :multiplot args))
-    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
-    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
+    (setf *plot-type-multiplot* multiplot)
+    (format *plot-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
+    (format *plot-stream* "~&set ~a ~a" :output (gp-quote output))
     (remf args :terminal)
     (remf args :output)
     (apply #'gp-set args)))
@@ -92,7 +93,7 @@ parameter style.
 "
   (map-plist args
              (lambda (key val)
-               (format *user-stream* "~&set ~a ~a"
+               (format *plot-stream* "~&set ~a ~a"
                        key (gp-quote val)))))
 
 (defun gp-unset (&rest args)
@@ -110,7 +111,16 @@ parameter style.
   NIL
 "
   (assert (every #'symbolp args))
-  (format *user-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
+  (format *plot-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
+
+(defun gp-clear ()
+  "gnuplot clear comannd
+- Arguments:
+
+- Return:
+  NIL
+"
+  (format *plot-stream* "~&clear~%"))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
