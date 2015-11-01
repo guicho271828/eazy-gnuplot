@@ -230,10 +230,9 @@
                 :terminal :png
                 :key '(:bottom :right :font "Times New Roman, 6")
                 :pointsize "0.4px")
-      (gp-set :label '(1 \"aaaaa\" at graph "0.8,0.8" center)
-              :label '(3 \"ccccccccc\" at graph "0.2,0.2" center)
-              :label '(4 \"ddddd\" at graph " 0.2,0.2" center)
-              )
+      (gp :set :label '(1 \"aaaaa\" at graph "0.8,0.8" center))
+      (gp :set :label '(3 \"ccccccccc\" at graph "0.2,0.2" center))
+      (gp :set :label '(4 \"ddddd\" at graph " 0.2,0.2" center))
       
       (func-plot "sin(x)" :title "super sin curve!")
       ;; once something has been plotted, everything written to the stream
@@ -333,7 +332,7 @@
       (func-plot "besj1(x)")
       (func-plot "besy0(x)")
       (func-plot "besy1(x)")
-      (gp-unset 'multiplot)
+      (gp :unset 'multiplot)
       )))
 
 (test multiplot-w/data-producing-functions
@@ -380,25 +379,25 @@
             :title "Col3")
       (func-plot "besy0(x)")
       (func-plot "besy1(x)")
-        (gp-unset 'multiplot))))
+        (gp :unset 'multiplot))))
 
 (test maintain-order-of-sets-unsets-issue-21
   (with-fixture test-plot ("maintain-order-of-sets-unsets-issue-21.png")
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
          (eazy-gnuplot:gp-setup :output path
                                 :multiplot (list ""))
-      (gp-set :title "O     O"
-              :polar '()
-              :size (list "1,.5")
-              :border 0)
-      (gp-unset :key
-                :tics)
+      (gp :set :title "O     O")
+      (gp :set :polar '())
+      (gp :set :size (list "1,.5"))
+      (gp :set :border 0)
+      (gp :unset :key)
+      (gp :unset :tics)
       (func-plot "[pi:2*pi] -1" :lw 5 )
-      (gp-set :title "###################"
-              :origin (list "0,.5")
-              :size (list ".5, .5"))
+      (gp :set :title "###################")
+      (gp :set :origin (list "0,.5"))
+      (gp :set :size (list ".5, .5"))
       (func-plot "-2*pi" :lw (list "2, .2") :with 'filledcurves)
-      (gp-set  :origin (list ".5, .5")
-               :title "###################")
+      (gp :set  :origin (list ".5, .5"))
+      (gp :set :title "###################")
       (func-plot "1" :lw (list "2, .2") :with 'filledcurves)
-      (gp-unset 'multiplot))))
+      (gp :unset 'multiplot))))
