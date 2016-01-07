@@ -16,9 +16,7 @@
            :plot
            :splot
            :gp-setup
-           :gp-set
-           :gp-unset
-           :gp-clear
+           :gp
            :gp-quote
            :*gnuplot-home*
            :row))
@@ -75,52 +73,31 @@
     (format *plot-stream* "~&set ~a ~a" :output (gp-quote output))
     (remf args :terminal)
     (remf args :output)
-    (apply #'gp-set args)))
+    (map-plist args
+               (lambda (key val)
+                 (format *plot-stream* "~&set ~a ~a"
+                         key (gp-quote val))))))
 
-(defun gp-set (&rest args &key &allow-other-keys)
-  "Set gnuplot parameters based upon contents of function arguments supplied in keyword
-parameter style.
+(defun gp (left-side &rest right-side)
+  "Single statement ,render gnuplot `left-side` as string infront of gp-quoted contents of ars
    For example:
-      (gp-set :title \"My plot\" :xlabel \"X\")
-   Generates
-     set title \"My Plot\"
-     set xlabel \"X\"
+     Command:
+       (gp-stmt :set :param)
+     Generates:
+       set param
+       set lmargin 10
+     Command
+       (gp-stmt :style :line 1 :lc :rgb '(\"'#999999'\") :lt 1 '(\"#border\"))
+     Generates:
 
 - Arguments:
-  - args : Keyword arguments with gnuplot assignments, quoted by gp-quote.
+  - left-side : first word in gnuplot statement
+  - right-side : arguments remaining in the argument list rendered as parameters to left-side command
 - Return:
   NIL
 "
-  (map-plist args
-             (lambda (key val)
-               (format *plot-stream* "~&set ~a ~a"
-                       key (gp-quote val)))))
-
-(defun gp-unset (&rest args)
-  "Unsets gnuplot parameters based upon contents of function arguments
-parameter style.
-   For example:
-      (gp-unset 'title :xlabel)
-   Generates
-     unset title
-     unset xlabel
-
-- Arguments:
-  - args : list of symbols designating gnuplot variables.
-- Return:
-  NIL
-"
-  (assert (every #'symbolp args))
-  (format *plot-stream* "~&~{~^unset ~a~%~}~%" (mapcar #'gp-quote args)))
-
-(defun gp-clear ()
-  "gnuplot clear comannd
-- Arguments:
-
-- Return:
-  NIL
-"
-  (format *plot-stream* "~&clear~%"))
+  (format *plot-stream* "~&~A ~A~%" left-side (gp-quote right-side))
+  )
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
