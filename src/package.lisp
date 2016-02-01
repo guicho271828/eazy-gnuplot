@@ -102,7 +102,7 @@
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
   (check-type stream symbol)
-  `(let (*plot-type-multiplot*) (call-with-plots ,external-format ,debug (lambda (,stream) ,@body))))
+  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
 
 
 (define-condition new-plot () ())
@@ -113,7 +113,8 @@
           (before-plot-stream (make-string-output-stream))
           (after-plot-stream (make-string-output-stream))
           (*data-stream* (make-string-output-stream))
-          (*plot-stream* (make-string-output-stream)))
+          (*plot-stream* (make-string-output-stream))
+          *plot-type-multiplot*)
       (let ((*user-stream* before-plot-stream))
         (handler-bind ((new-plot
                         (lambda (c)
