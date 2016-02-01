@@ -82,7 +82,7 @@
   "Single statement ,render gnuplot `left-side` as string infront of gp-quoted contents of ars
    For example:
      Command:
-       (gp-stmt :set :param)
+       (gp :set :param)
      Generates:
        set param
        set lmargin 10
