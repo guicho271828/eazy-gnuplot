@@ -64,6 +64,9 @@
       (map-plist rest fn))))
 
 (defun gp-setup (&rest args &key terminal output multiplot &allow-other-keys)
+  "Special command for setting up gnuplot. This is almost the same as GP command,
+however it serves some special purposes such as terminal detection from the output,
+multiplot etc."
   (let ((*print-case* :downcase))
     (unless output
       (error "missing ouptut!"))
