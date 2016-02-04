@@ -170,7 +170,7 @@ multiplot etc."
                           (terpri after-plot-stream))))
           (funcall body (make-synonym-stream '*user-stream*))
           ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-          (format after-plot-stream "~&set output"))
+          (format after-plot-stream "~%set output"))
         (with-input-from-string (in ((lambda (str)
                                        (if debug
                                            (print str *error-output*)
