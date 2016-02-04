@@ -417,3 +417,22 @@
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
       (eazy-gnuplot:gp-setup :output path)
       (gp :plot :x**2))))
+
+(test plot-with-datafile
+  (with-fixture test-plot ("plot-data.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (datafile-plot "test.dat")        ; backward compatibility
+      (plot #p"test.dat"))))
+
+
+(test plot-with-function
+  (with-fixture test-plot ("plot-function.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (func-plot "sin(x)")        ; backward compatibility
+      (plot "sin(x)"))))
+
+
+
+
