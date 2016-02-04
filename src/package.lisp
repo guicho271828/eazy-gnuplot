@@ -188,7 +188,7 @@ multiplot etc."
 
 (defun data-filename (data)
   (etypecase data
-    (string   data)
+    (string   data) ; expression
     (pathname (format nil "'~a'" data))
     (function "'-'")))
 
@@ -201,8 +201,7 @@ multiplot etc."
      (format *plot-command-stream* "~%~a ~a" type filename)
      (setf *plot-type* type))
     ((and (eq type *plot-type*) (not *plot-type-multiplot*))
-     (format *plot-command-stream* ", ~a" filename)
-     )
+     (format *plot-command-stream* ", ~a" filename))
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
             type *plot-type* type *plot-type*)))
