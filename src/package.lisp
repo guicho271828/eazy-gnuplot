@@ -148,21 +148,21 @@ multiplot etc."
 
 
 (defun %plot (data-producing-fn &rest args
-              &key (type :plot) string &allow-other-keys)
+              &key (type :plot) filename &allow-other-keys)
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
-     (format *plot-command-stream* "~%~a ~a" type string)
+     (format *plot-command-stream* "~%~a ~a" type filename)
      (setf *plot-type* type))
     ((and (eq type *plot-type*) (not *plot-type-multiplot*))
-     (format *plot-command-stream* ", ~a" string)
+     (format *plot-command-stream* ", ~a" filename)
      )
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
             type *plot-type* type *plot-type*)))
 
   (remf args :type)
-  (remf args :string)
+  (remf args :filename)
   
   ;; process arguments
   (let ((first-using t))
@@ -196,21 +196,21 @@ multiplot etc."
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (apply #'%plot data-producing-fn :string "'-'" args))
+  (apply #'%plot data-producing-fn :filename "'-'" args))
 (defun splot (data-producing-fn &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (apply #'plot data-producing-fn :type :splot args))
 (defun func-plot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (check-type string string)
-  (apply #'%plot nil :string string args))
+  (apply #'%plot nil :filename string args))
 (defun func-splot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (apply #'func-plot string :type :splot args))
 (defun datafile-plot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (check-type pathspec (or pathname string))
-  (apply #'%plot nil :string (format nil "'~a'" (pathname pathspec)) args))
+  (apply #'%plot nil :filename (format nil "'~a'" (pathname pathspec)) args))
 (defun datafile-splot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (apply #'datafile-plot pathspec :type :splot args))
