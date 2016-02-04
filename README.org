@@ -14,7 +14,7 @@ Lispy Gnuplot library
 + Fitting function now available.
 + Most arguments supports list notation. e.g. not only `:using '(1 2)` but
   also `:errors`, `:via`, `:size`, `m?[xyzr]2?(range|tics)` ...
-+ PLOT function accepts strings (treated as functions) and pathnames (treated as datafile). func-plot and datafile-plot are deprecated.
++ PLOT function accepts strings (treated as functions) and pathnames (treated as datafile). func-plot and datafile-plot are deprecated (but still available).
 
 ** Usage
 
