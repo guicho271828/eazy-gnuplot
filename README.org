@@ -19,15 +19,15 @@ Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
 =gp-setup= accepts and sets any attributes -- mighty
 =&allow-other-keys=. /no compatibility issue re: different gnuplot!/.
 
-For more examples, see the tests in =t/package.lisp=.
+For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-gnuplot cookbook]] !
 
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
 (with-plots (*standard-output* :debug t)
    (gp-setup :xlabel "x-label"      ; strings : "\"x-label\""
              :ylabel "y-label"
-             :output #p"sample.pdf" ; pathnames : "\"sample.pdf\""
-             :terminal :pdf         ; keyword/symbols: "terminal pdf"
+             :output #p"sample.png" ; pathnames : "\"sample.png\""
+             :terminal :png         ; keyword/symbols: "terminal png"
              
              ;; list contents are recursively quoted, then joined by a space
              :key '(:bottom :right :font "Times New Roman, 6")
@@ -37,7 +37,7 @@ For more examples, see the tests in =t/package.lisp=.
              :yrange :|[0:1]|
              ;; currently, specifying these kinds of options requires to abuse
              ;; keywords and symbols. Another example: comma separated list, e.g.,
-             ;; :terminal '(:pdf :size |10cm,6cm|)
+             ;; :terminal '(:png :size |10cm,6cm|)
              )
 
    ;; any unsupported commands are available by printing it to the stream
@@ -64,14 +64,20 @@ For more examples, see the tests in =t/package.lisp=.
          :with '(:lines)))
 #+END_SRC
 
-This produces the following gnuplot code internally. It will then be fed
-into gnuplot interpreter, resulting in [[https://raw.githubusercontent.com/guicho271828/eazy-gnuplot/master/sample.pdf][this]] pdf.
+It results in the following png:
+
+https://raw.githubusercontent.com/guicho271828/eazy-gnuplot/master/sample.png
+
+** How it works
+
+Above code This produces the following gnuplot code internally. It will
+then be fed into gnuplot interpreter.
 
 #+BEGIN_SRC gnuplot
 set xlabel "x-label"
 set ylabel "y-label"
-set output "sample.pdf"
-set terminal pdf
+set output "sample.png"
+set terminal png
 set key bottom right font "Times New Roman, 6"
 set pointsize "0.4px"
 plot sin(x) title "super sin curve!", '-' using 1:2 title "1" with linespoint, '-' using 1:2 title "2" with lines
