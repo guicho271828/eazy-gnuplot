@@ -56,6 +56,36 @@
              value))
     ((number) value)))
 
+(defvar *keyword-separator-alist* nil
+  "an alist from a keyword to the corresponding separator string.")
+
+(setf (getf *keyword-separator-alist* :using) ":")
+(iter (for keyword in '(:via :at :size :errors))
+      (setf (getf *keyword-separator-alist* keyword) ","))
+(iter (for dimension in '("X" "Y" "Z" "R"))
+      (iter (for num in '("2" ""))
+            (iter (for middle in '("M" ""))
+                  (iter (for type in '("TICS" "RANGE"))
+                        (setf (getf *keyword-separator-alist*
+                                    (make-keyword
+                                     (concatenate 'string
+                                                  dimension num middle type)))
+                              ",")))))
+
+(defun gp-quote-for (keyword value)
+  (typecase value
+    (atom
+     (gp-quote value))
+    (list
+     (if-let ((sep (getf *keyword-separator-alist* keyword)))
+       (make-keyword
+        (apply #'concatenate
+               'string
+               (iter (for arg in value)
+                     (unless (first-time-p)
+                       (collect sep))
+                     (collect (princ-to-string arg)))))
+       (gp-quote value)))))
 
 
 (defun map-plist (args fn)
