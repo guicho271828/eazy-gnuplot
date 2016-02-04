@@ -144,6 +144,8 @@ multiplot etc."
                                                   (get-output-stream-string after-plot-stream))))
           (uiop:run-program *gnuplot-home*
                             :input in
+                            :output :interactive
+                            :error-output :interactive
                             :external-format external-format)))))
 
 (defun data-filename (data)
