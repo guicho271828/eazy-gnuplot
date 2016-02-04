@@ -29,7 +29,7 @@
 (defvar *user-stream* nil
   "a stream which is bounded by with-plots, and which the user can write
   some additional gnuplot commands into.")
-(defvar *plot-stream* nil
+(defvar *plot-command-stream* nil
   "a stream dedicated for printing the plot command, and its non-data
   arguments, like plot style, linewidth, linetype.  not meant to be exposed
   to the users.")
@@ -121,7 +121,7 @@ multiplot etc."
           (before-plot-stream (make-string-output-stream))
           (after-plot-stream (make-string-output-stream))
           (*data-stream* (make-string-output-stream))
-          (*plot-stream* (make-string-output-stream))
+          (*plot-command-stream* (make-string-output-stream))
           *plot-type-multiplot*)
       (let ((*user-stream* before-plot-stream))
         (handler-bind ((new-plot
@@ -139,7 +139,7 @@ multiplot etc."
                                            str))
                                      (concatenate 'string
                                                   (get-output-stream-string before-plot-stream)
-                                                  (get-output-stream-string *plot-stream*)
+                                                  (get-output-stream-string *plot-command-stream*)
                                                   (get-output-stream-string *data-stream*)
                                                   (get-output-stream-string after-plot-stream))))
           (uiop:run-program *gnuplot-home*
@@ -152,10 +152,10 @@ multiplot etc."
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
-     (format *plot-stream* "~%~a ~a" type string)
+     (format *plot-command-stream* "~%~a ~a" type string)
      (setf *plot-type* type))
     ((and (eq type *plot-type*) (not *plot-type-multiplot*))
-     (format *plot-stream* ", ~a" string)
+     (format *plot-command-stream* ", ~a" string)
      )
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
@@ -171,20 +171,20 @@ multiplot etc."
      (lambda (&rest args)
        (match args
          ((list :using (and val (type list)))
-          (format *plot-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
           (setf first-using nil))
          ((list :using (and val (type atom)))
-          (format *plot-stream* "~:[, ''~;~] using ~a" first-using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using val)
           (setf first-using nil))
          ((list key val)
-          (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
+          (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
   (when (functionp data-producing-fn)
     ;; ensure the function is called once
     (let ((data (with-output-to-string (*user-stream*)
                   (funcall data-producing-fn)))
-          (correct-stream (if *plot-type-multiplot* *plot-stream* *data-stream*)))
+          (correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*)))
       (flet ((plt ()
                (terpri correct-stream)
                (write-sequence data correct-stream)
