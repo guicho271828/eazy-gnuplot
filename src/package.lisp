@@ -19,7 +19,8 @@
            :gp
            :gp-quote
            :*gnuplot-home*
-           :row))
+           :row
+           :fit))
 (in-package :eazy-gnuplot)
 
 ;; gnuplot interface
@@ -265,3 +266,17 @@ representing gnuplot functions, or a pathanme for input data."
 (defun row (&rest args)
   "Write a row"
   (format *user-stream* "~&~{~a~^ ~}" args))
+
+(defun fit (expression data &rest args &key using via unitweights yerror xyerror zerror errors &allow-other-keys)
+  "EXPRESSION is a string representing gnuplot fitting target expressions e.g. f(x), ax**2+bx+c.
+DATA is either a function producing data, a string
+representing a gnuplot expression, or a pathanme for input data."
+  (declare (ignorable using unitweights yerror xyerror zerror errors))
+  (assert via (via) "specify the values to be fitted")
+  ;; I considered using GP here, but it quotes functions unavoidably
+  (format *user-stream* "~&fit ~a ~a " expression (data-filename data))
+  (%gp args)
+  (when (functionp data)
+    (fresh-line *user-stream*)
+    (funcall data)
+    (gp :end)))
