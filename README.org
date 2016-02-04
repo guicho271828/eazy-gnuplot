@@ -14,6 +14,7 @@ Lispy Gnuplot library
 + Fitting function now available.
 + Most arguments supports list notation. e.g. not only `:using '(1 2)` but
   also `:errors`, `:via`, `:size`, `m?[xyzr]2?(range|tics)` ...
++ PLOT function accepts strings (treated as functions) and pathnames (treated as datafile). func-plot and datafile-plot are deprecated.
 
 ** Usage
 
@@ -40,6 +41,8 @@ For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-g
              ;; currently, specifying these kinds of options requires to abuse
              ;; keywords and symbols. Another example: comma separated list, e.g.,
              ;; :terminal '(:png :size |10cm,6cm|)
+             ;;
+             ;; 2/4/2016 Major options are now covered. 
              )
 
    ;; any unsupported commands are available by printing it to the stream
@@ -50,7 +53,7 @@ For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-g
    ;; The list is growing!
 
    ;; Functions can be protted with func-plot
-   (func-plot "sin(x)" :title "super sin curve!")
+   (plot "sin(x)" :title "super sin curve!")
    ;; Plot a lisp data directly
    (plot (lambda ()
            (format t "~&0 0")
@@ -113,14 +116,6 @@ You can even try a wxt terminal or qt terminal and see the GUI interactively.
 However, these options may not be available on older versions of gnuplot.
 QT terminal is supported from gnuplot-4.6.
 WXT terminal has a known bug which leaves a zombie process until gnuplot-4.6.
-
-** Plotting a file
-
-Use =datafile-plot= (2D) / =datafile-splot= (3D) instead of =plot= / =splot=.
-
-#+BEGIN_SRC lisp
-(datafile-plot "some.dat" :using '(2 3) :title "data")
-#+END_SRC
 
 ** Dependencies
 
