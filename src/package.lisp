@@ -24,12 +24,20 @@
 
 ;; gnuplot interface
 
-(defvar *gnuplot-home* "gnuplot")
-  (defvar *user-stream*)
-  (defvar *plot-stream*)
-  (defvar *data-stream*)
-  (defvar *plot-type*)
-  (defvar *plot-type-multiplot*)
+(defvar *gnuplot-home* "gnuplot"
+  "gnuplot command available in the system.")
+(defvar *user-stream* nil
+  "a stream which is bounded by with-plots, and which the user can write
+  some additional gnuplot commands into.")
+(defvar *plot-command-stream* nil
+  "a stream dedicated for printing the plot command, and its non-data
+  arguments, like plot style, linewidth, linetype.  not meant to be exposed
+  to the users.")
+(defvar *data-stream* nil
+  "a stream dedicated for printing the inline data fed to the plot
+  command. not meant to be exposed to the users.")
+(defvar *plot-type*)
+(defvar *plot-type-multiplot*)
 
 (defun gp-quote (value)
   "Map a value to the corresponding gnuplot string"
@@ -56,6 +64,9 @@
       (map-plist rest fn))))
 
 (defun gp-setup (&rest args &key terminal output multiplot &allow-other-keys)
+  "Special command for setting up gnuplot. This is almost the same as GP command,
+however it serves some special purposes such as terminal detection from the output,
+multiplot etc."
   (let ((*print-case* :downcase))
     (unless output
       (error "missing ouptut!"))
@@ -69,26 +80,24 @@
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
     (setf *plot-type-multiplot* multiplot)
-    (format *plot-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
-    (format *plot-stream* "~&set ~a ~a" :output (gp-quote output))
+    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
+    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
     (remf args :terminal)
     (remf args :output)
     (map-plist args
                (lambda (key val)
-                 (format *plot-stream* "~&set ~a ~a"
+                 (format *user-stream* "~&set ~a ~a"
                          key (gp-quote val))))))
 
 (defun gp (left-side &rest right-side)
   "Single statement ,render gnuplot `left-side` as string infront of gp-quoted contents of ars
    For example:
      Command:
-       (gp-stmt :set :param)
+       (gp :set :param)
+       (gp :set :style :line 1 :lc :rgb '(\"'#999999'\") :lt 1 '(\"#border\"))
      Generates:
        set param
-       set lmargin 10
-     Command
-       (gp-stmt :style :line 1 :lc :rgb '(\"'#999999'\") :lt 1 '(\"#border\"))
-     Generates:
+       set style line 1 lc rgb \"'#999999'\" lt 1 \"#border\"
 
 - Arguments:
   - left-side : first word in gnuplot statement
@@ -96,13 +105,12 @@
 - Return:
   NIL
 "
-  (format *plot-stream* "~&~A ~A~%" left-side (gp-quote right-side))
-  )
+  (format *user-stream* "~&~A ~A~%" left-side (gp-quote right-side)))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
   (check-type stream symbol)
-  `(let (*plot-type-multiplot*) (call-with-plots ,external-format ,debug (lambda (,stream) ,@body))))
+  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
 
 
 (define-condition new-plot () ())
@@ -113,7 +121,8 @@
           (before-plot-stream (make-string-output-stream))
           (after-plot-stream (make-string-output-stream))
           (*data-stream* (make-string-output-stream))
-          (*plot-stream* (make-string-output-stream)))
+          (*plot-command-stream* (make-string-output-stream))
+          *plot-type-multiplot*)
       (let ((*user-stream* before-plot-stream))
         (handler-bind ((new-plot
                         (lambda (c)
@@ -130,7 +139,7 @@
                                            str))
                                      (concatenate 'string
                                                   (get-output-stream-string before-plot-stream)
-                                                  (get-output-stream-string *plot-stream*)
+                                                  (get-output-stream-string *plot-command-stream*)
                                                   (get-output-stream-string *data-stream*)
                                                   (get-output-stream-string after-plot-stream))))
           (uiop:run-program *gnuplot-home*
@@ -143,10 +152,10 @@
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
-     (format *plot-stream* "~%~a ~a" type string)
+     (format *plot-command-stream* "~%~a ~a" type string)
      (setf *plot-type* type))
     ((and (eq type *plot-type*) (not *plot-type-multiplot*))
-     (format *plot-stream* ", ~a" string)
+     (format *plot-command-stream* ", ~a" string)
      )
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
@@ -162,20 +171,20 @@
      (lambda (&rest args)
        (match args
          ((list :using (and val (type list)))
-          (format *plot-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
           (setf first-using nil))
          ((list :using (and val (type atom)))
-          (format *plot-stream* "~:[, ''~;~] using ~a" first-using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using val)
           (setf first-using nil))
          ((list key val)
-          (format *plot-stream* " ~a ~a" key (gp-quote val)))))))
+          (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
   (when (functionp data-producing-fn)
     ;; ensure the function is called once
     (let ((data (with-output-to-string (*user-stream*)
                   (funcall data-producing-fn)))
-          (correct-stream (if *plot-type-multiplot* *plot-stream* *data-stream*)))
+          (correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*)))
       (flet ((plt ()
                (terpri correct-stream)
                (write-sequence data correct-stream)

@@ -28,6 +28,16 @@
     (&body)
     (is-true (probe-file path))))
 
+(def-fixture test-not-plot (out)
+  (let ((path (asdf:system-relative-pathname
+               :eazy-gnuplot.test out)))
+    (print path)
+    (terpri)
+    (when (probe-file path)
+      (delete-file path))
+    (&body)
+    (is-false (probe-file path))))
+
 (def-fixture just-plot (out)
   (let ((path (asdf:system-relative-pathname
                :eazy-gnuplot.test out)))
@@ -384,8 +394,8 @@
 (test maintain-order-of-sets-unsets-issue-21
   (with-fixture test-plot ("maintain-order-of-sets-unsets-issue-21.png")
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
-         (eazy-gnuplot:gp-setup :output path
-                                :multiplot (list ""))
+      (eazy-gnuplot:gp-setup :output path
+                             :multiplot (list ""))
       (gp :set :title "O     O")
       (gp :set :polar '())
       (gp :set :size (list "1,.5"))
@@ -401,3 +411,9 @@
       (gp :set :title "###################")
       (func-plot "1" :lw (list "2, .2") :with 'filledcurves)
       (gp :unset 'multiplot))))
+
+(test maintain-order-of-gp-setup
+  (with-fixture test-plot ("maintain-order-of-gp-setup.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      (gp :plot :x**2))))
