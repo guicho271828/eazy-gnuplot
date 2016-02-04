@@ -111,14 +111,11 @@ multiplot etc."
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
     (setf *plot-type-multiplot* multiplot)
-    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
-    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
+    (gp :set :terminal terminal)
+    (gp :set :output output)
     (remf args :terminal)
     (remf args :output)
-    (map-plist args
-               (lambda (key val)
-                 (format *user-stream* "~&set ~a ~a"
-                         key (gp-quote val))))))
+    (map-plist args (curry #'gp :set))))
 
 (defun gp (&rest args)
   "Render single line gnuplot commands
@@ -216,11 +213,8 @@ multiplot etc."
      args
      (lambda (&rest args)
        (match args
-         ((list :using (and val (type list)))
-          (format *plot-command-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
-          (setf first-using nil))
-         ((list :using (and val (type atom)))
-          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using val)
+         ((list :using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using (gp-quote-for :using val))
           (setf first-using nil))
          ((list key val)
           (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
