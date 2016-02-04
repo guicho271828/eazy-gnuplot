@@ -41,7 +41,7 @@
 
 (defun gp-quote (value)
   "Map a value to the corresponding gnuplot string"
-  (match value
+  (ematch value
     ((type string) (format nil "\"~a\"" value))
     ((type pathname) (gp-quote (namestring value)))
     (nil "")
@@ -54,8 +54,9 @@
                (format nil "~a ~a"
                        str (gp-quote val)))
              value))
-    ;; numbers etc
-    (_ value)))
+    ((number) value)))
+
+
 
 (defun map-plist (args fn)
   (when args
