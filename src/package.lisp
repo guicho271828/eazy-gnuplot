@@ -147,10 +147,10 @@ multiplot etc."
                             :external-format external-format)))))
 
 
-(defun %plot (data-producing-fn &rest args
+(defun %plot (data &rest args
               &key (type :plot) &allow-other-keys
               &aux (filename
-                    (etypecase data-producing-fn
+                    (etypecase data
                       (string
                        data-producing-fn)
                       (pathname
@@ -184,10 +184,10 @@ multiplot etc."
           (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-  (when (functionp data-producing-fn)
+  (when (functionp data)
     ;; ensure the function is called once
     (let ((data (with-output-to-string (*user-stream*)
-                  (funcall data-producing-fn)))
+                  (funcall data)))
           (correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*)))
       (flet ((plt ()
                (terpri correct-stream)
@@ -198,16 +198,16 @@ multiplot etc."
               (loop repeat n do (plt))
               (plt)))))))
 
-(defun plot (data-producing-fn &rest args &key using &allow-other-keys)
-  "DATA-PRODUCING-FN is either a function producing data, a string
+(defun plot (data &rest args &key using &allow-other-keys)
+  "DATA is either a function producing data, a string
 representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
-  (apply #'%plot data-producing-fn args))
-(defun splot (data-producing-fn &rest args &key using &allow-other-keys)
-  "DATA-PRODUCING-FN is either a function producing data, a string
+  (apply #'%plot data args))
+(defun splot (data &rest args &key using &allow-other-keys)
+  "DATA is either a function producing data, a string
 representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
-  (apply #'plot data-producing-fn :type :splot args))
+  (apply #'plot data :type :splot args))
 (defun func-plot (expression &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (check-type expression string)
