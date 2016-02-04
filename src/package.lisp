@@ -146,16 +146,15 @@ multiplot etc."
                             :input in
                             :external-format external-format)))))
 
+(defun data-filename (data)
+  (etypecase data
+    (string   data)
+    (pathname (format nil "'~a'" data))
+    (function "'-'")))
 
 (defun %plot (data &rest args
               &key (type :plot) &allow-other-keys
-              &aux (filename
-                    (etypecase data
-                      (string
-                       data-producing-fn)
-                      (pathname
-                       (format nil "'~a'" data-producing-fn))
-                      (function "'-'"))))
+              &aux (filename (data-filename data)))
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
