@@ -91,12 +91,10 @@
    For example:
      Command:
        (gp :set :param)
+       (gp :set :style :line 1 :lc :rgb '(\"'#999999'\") :lt 1 '(\"#border\"))
      Generates:
        set param
-       set lmargin 10
-     Command
-       (gp-stmt :style :line 1 :lc :rgb '(\"'#999999'\") :lt 1 '(\"#border\"))
-     Generates:
+       set style line 1 lc rgb \"'#999999'\" lt 1 \"#border\"
 
 - Arguments:
   - left-side : first word in gnuplot statement
@@ -104,8 +102,7 @@
 - Return:
   NIL
 "
-  (format *plot-stream* "~&~A ~A~%" left-side (gp-quote right-side))
-  )
+  (format *user-stream* "~&~A ~A~%" left-side (gp-quote right-side)))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
