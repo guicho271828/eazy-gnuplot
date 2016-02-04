@@ -6,12 +6,14 @@ Lispy Gnuplot library
 - Structure-less -- no CFFI, no CLOS, no STRUCTURE 
 - Just print the data to the =*standard-output*= inside =plot= function
 
-Build status on =develop=: [[https://travis-ci.org/guicho271828/eazy-gnuplot.svg?branch=develop]] 
-
-+ News :: Supports a single datafile with multiple =:using= options. Plotting made more efficient. [Oct 2015]
-+ News :: Supports for Multiplot environment partially available.
-+ News :: When :terminal is missing, eazy-gnuplot tries to guess its terminal type from the given pathname.
-+ News :: Growing the list of interfaces available as functions. Still, "unsupported commands" can be directly printed to the stream.
+*News* 
++ Supports a single datafile with multiple =:using= options. Plotting made more efficient. [Oct 2015]
++ Supports for Multiplot environment partially available.
++ When :terminal is missing, eazy-gnuplot tries to guess its terminal type from the given pathname.
++ Growing the list of interfaces available as functions. Still, "unsupported commands" can be directly printed to the stream.
++ Fitting function now available.
++ Most arguments supports list notation. e.g. not only `:using '(1 2)` but
+  also `:errors`, `:via`, `:xtics` ...
 
 ** Usage
 
