@@ -23,6 +23,7 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (when (probe-file path)
       (delete-file path))
     (&body)
@@ -33,6 +34,7 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (when (probe-file path)
       (delete-file path))
     (&body)
@@ -43,10 +45,13 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (ignore-errors
       (when (probe-file path)
-        (delete-file path)))
-    (&body)))
+        (delete-file path))
+      (&body))))
+
+
 
 (test eazy-gnuplot
   (with-fixture test-plot ("sample.pdf")
