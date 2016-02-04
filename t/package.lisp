@@ -60,8 +60,7 @@
       (gp-setup :xlabel "x-label"       ; strings are "quoted"
                 :ylabel "y-label"
                 :output path            ; pathnames are "quoted"
-                :terminal :pdf          ; keyword/symbols are not quoted
-                                        ; (but not escaped)
+                :terminal '(:pdf :size (3 3))
                 :key '(:bottom :right :font "Times New Roman, 6")
                 ;; list contents are recursively quoted
                 ;; then joined by a space
