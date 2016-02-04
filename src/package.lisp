@@ -24,12 +24,20 @@
 
 ;; gnuplot interface
 
-(defvar *gnuplot-home* "gnuplot")
-  (defvar *user-stream*)
-  (defvar *plot-stream*)
-  (defvar *data-stream*)
-  (defvar *plot-type*)
-  (defvar *plot-type-multiplot*)
+(defvar *gnuplot-home* "gnuplot"
+  "gnuplot command available in the system.")
+(defvar *user-stream* nil
+  "a stream which is bounded by with-plots, and which the user can write
+  some additional gnuplot commands into.")
+(defvar *plot-stream* nil
+  "a stream dedicated for printing the plot command, and its non-data
+  arguments, like plot style, linewidth, linetype.  not meant to be exposed
+  to the users.")
+(defvar *data-stream* nil
+  "a stream dedicated for printing the inline data fed to the plot
+  command. not meant to be exposed to the users.")
+(defvar *plot-type*)
+(defvar *plot-type-multiplot*)
 
 (defun gp-quote (value)
   "Map a value to the corresponding gnuplot string"
