@@ -120,8 +120,8 @@ multiplot etc."
                  (format *user-stream* "~&set ~a ~a"
                          key (gp-quote val))))))
 
-(defun gp (left-side &rest right-side)
-  "Single statement ,render gnuplot `left-side` as string infront of gp-quoted contents of ars
+(defun gp (&rest args)
+  "Render single line gnuplot commands
    For example:
      Command:
        (gp :set :param)
@@ -130,13 +130,23 @@ multiplot etc."
        set param
        set style line 1 lc rgb \"'#999999'\" lt 1 \"#border\"
 
-- Arguments:
-  - left-side : first word in gnuplot statement
-  - right-side : arguments remaining in the argument list rendered as parameters to left-side command
 - Return:
   NIL
 "
-  (format *user-stream* "~&~A ~A~%" left-side (gp-quote right-side)))
+  (fresh-line *user-stream*)
+  (%gp args)
+  (values))
+
+(defun %gp (args)
+  (write-char #\Space *user-stream*)
+  (iter (generate (arg next rest) on args)
+        (next arg)
+        (cond
+          ((getf *keyword-separator-alist* arg)
+           (format *user-stream* "~A ~A " arg (gp-quote-for arg next))
+           (next arg))
+          (t
+           (format *user-stream* "~A " (gp-quote arg))))))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
