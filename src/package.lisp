@@ -148,7 +148,14 @@ multiplot etc."
 
 
 (defun %plot (data-producing-fn &rest args
-              &key (type :plot) filename &allow-other-keys)
+              &key (type :plot) &allow-other-keys
+              &aux (filename
+                    (etypecase data-producing-fn
+                      (string
+                       data-producing-fn)
+                      (pathname
+                       (format nil "'~a'" data-producing-fn))
+                      (function "'-'"))))
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
@@ -160,10 +167,7 @@ multiplot etc."
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
             type *plot-type* type *plot-type*)))
-
   (remf args :type)
-  (remf args :filename)
-  
   ;; process arguments
   (let ((first-using t))
     (map-plist
@@ -195,27 +199,34 @@ multiplot etc."
               (plt)))))))
 
 (defun plot (data-producing-fn &rest args &key using &allow-other-keys)
+  "DATA-PRODUCING-FN is either a function producing data, a string
+representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
-  (apply #'%plot data-producing-fn :filename "'-'" args))
+  (apply #'%plot data-producing-fn args))
 (defun splot (data-producing-fn &rest args &key using &allow-other-keys)
+  "DATA-PRODUCING-FN is either a function producing data, a string
+representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
   (apply #'plot data-producing-fn :type :splot args))
 (defun func-plot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (check-type string string)
-  (apply #'%plot nil :filename string args))
+  (warn "FUNC-PLOT is deprecated. Use the PLOT function with a string.")
+  (apply #'%plot string args))
 (defun func-splot (string &rest args &key using &allow-other-keys)
   (declare (ignorable using))
+  (warn "FUNC-SPLOT is deprecated. Use the PLOT function with a string.")
   (apply #'func-plot string :type :splot args))
 (defun datafile-plot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (check-type pathspec (or pathname string))
-  (apply #'%plot nil :filename (format nil "'~a'" (pathname pathspec)) args))
+  (check-type pathspec (or string pathname))
+  (warn "DATAFILE-PLOT is deprecated. Use the PLOT function with a pathname.")
+  (apply #'%plot (pathname pathspec) args))
 (defun datafile-splot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (apply #'datafile-plot pathspec :type :splot args))
+  (warn "DATAFILE-SPLOT is deprecated. Use the SPLOT function with a pathname.")
+  (apply #'datafile-plot (pathname pathspec) :type :splot args))
 
 (defun row (&rest args)
   "Write a row"
   (format *user-stream* "~&~{~a~^ ~}" args))
-
