@@ -19,7 +19,8 @@
            :gp
            :gp-quote
            :*gnuplot-home*
-           :row))
+           :row
+           :fit))
 (in-package :eazy-gnuplot)
 
 ;; gnuplot interface
@@ -41,7 +42,7 @@
 
 (defun gp-quote (value)
   "Map a value to the corresponding gnuplot string"
-  (match value
+  (ematch value
     ((type string) (format nil "\"~a\"" value))
     ((type pathname) (gp-quote (namestring value)))
     (nil "")
@@ -54,8 +55,39 @@
                (format nil "~a ~a"
                        str (gp-quote val)))
              value))
-    ;; numbers etc
-    (_ value)))
+    ((number) value)))
+
+(defvar *keyword-separator-alist* nil
+  "an alist from a keyword to the corresponding separator string.")
+
+(setf (getf *keyword-separator-alist* :using) ":")
+(iter (for keyword in '(:via :at :size :errors))
+      (setf (getf *keyword-separator-alist* keyword) ","))
+(iter (for dimension in '("X" "Y" "Z" "R"))
+      (iter (for num in '("2" ""))
+            (iter (for middle in '("M" ""))
+                  (iter (for type in '("TICS" "RANGE"))
+                        (setf (getf *keyword-separator-alist*
+                                    (make-keyword
+                                     (concatenate 'string
+                                                  dimension num middle type)))
+                              ",")))))
+
+(defun gp-quote-for (keyword value)
+  (typecase value
+    (atom
+     (gp-quote value))
+    (list
+     (if-let ((sep (getf *keyword-separator-alist* keyword)))
+       (make-keyword
+        (apply #'concatenate
+               'string
+               (iter (for arg in value)
+                     (unless (first-time-p)
+                       (collect sep))
+                     (collect (princ-to-string arg)))))
+       (gp-quote value)))))
+
 
 (defun map-plist (args fn)
   (when args
@@ -80,17 +112,14 @@ multiplot etc."
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
     (setf *plot-type-multiplot* multiplot)
-    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
-    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
+    (gp :set :terminal terminal)
+    (gp :set :output output)
     (remf args :terminal)
     (remf args :output)
-    (map-plist args
-               (lambda (key val)
-                 (format *user-stream* "~&set ~a ~a"
-                         key (gp-quote val))))))
+    (map-plist args (curry #'gp :set))))
 
-(defun gp (left-side &rest right-side)
-  "Single statement ,render gnuplot `left-side` as string infront of gp-quoted contents of ars
+(defun gp (&rest args)
+  "Render single line gnuplot commands
    For example:
      Command:
        (gp :set :param)
@@ -99,13 +128,23 @@ multiplot etc."
        set param
        set style line 1 lc rgb \"'#999999'\" lt 1 \"#border\"
 
-- Arguments:
-  - left-side : first word in gnuplot statement
-  - right-side : arguments remaining in the argument list rendered as parameters to left-side command
 - Return:
   NIL
 "
-  (format *user-stream* "~&~A ~A~%" left-side (gp-quote right-side)))
+  (fresh-line *user-stream*)
+  (%gp args)
+  (values))
+
+(defun %gp (args)
+  (write-char #\Space *user-stream*)
+  (iter (generate (arg next rest) on args)
+        (next arg)
+        (cond
+          ((getf *keyword-separator-alist* arg)
+           (format *user-stream* "~A ~A " arg (gp-quote-for arg next))
+           (next arg))
+          (t
+           (format *user-stream* "~A " (gp-quote arg))))))
 
 (defmacro with-plots ((stream &key debug (external-format :default))
                       &body body)
@@ -132,7 +171,7 @@ multiplot etc."
                           (terpri after-plot-stream))))
           (funcall body (make-synonym-stream '*user-stream*))
           ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-          (format after-plot-stream "~&set output"))
+          (format after-plot-stream "~%set output"))
         (with-input-from-string (in ((lambda (str)
                                        (if debug
                                            (print str *error-output*)
@@ -144,26 +183,26 @@ multiplot etc."
                                                   (get-output-stream-string after-plot-stream))))
           (uiop:run-program *gnuplot-home*
                             :input in
+                            :output :interactive
+                            :error-output :interactive
                             :external-format external-format)))))
 
+(defun data-filename (data)
+  (etypecase data
+    (string   data) ; expression
+    (pathname (format nil "'~a'" data))
+    (function "'-'")))
 
-(defun %plot (data-producing-fn &rest args
+(defun %plot (data &rest args
               &key (type :plot) &allow-other-keys
-              &aux (filename
-                    (etypecase data-producing-fn
-                      (string
-                       data-producing-fn)
-                      (pathname
-                       (format nil "'~a'" data-producing-fn))
-                      (function "'-'"))))
+              &aux (filename (data-filename data)))
   ;; print the filename
   (cond
     ((or (null *plot-type*) *plot-type-multiplot*)
      (format *plot-command-stream* "~%~a ~a" type filename)
      (setf *plot-type* type))
     ((and (eq type *plot-type*) (not *plot-type-multiplot*))
-     (format *plot-command-stream* ", ~a" filename)
-     )
+     (format *plot-command-stream* ", ~a" filename))
     (t
      (error "Using incompatible plot types ~a and ~a in a same figure! (given: ~a expected: ~a)"
             type *plot-type* type *plot-type*)))
@@ -174,20 +213,17 @@ multiplot etc."
      args
      (lambda (&rest args)
        (match args
-         ((list :using (and val (type list)))
-          (format *plot-command-stream* "~:[, ''~;~] using ~{~a~^:~}" first-using val)
-          (setf first-using nil))
-         ((list :using (and val (type atom)))
-          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using val)
+         ((list :using val)
+          (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using (gp-quote-for :using val))
           (setf first-using nil))
          ((list key val)
           (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
 
   (signal 'new-plot)
-  (when (functionp data-producing-fn)
+  (when (functionp data)
     ;; ensure the function is called once
     (let ((data (with-output-to-string (*user-stream*)
-                  (funcall data-producing-fn)))
+                  (funcall data)))
           (correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*)))
       (flet ((plt ()
                (terpri correct-stream)
@@ -198,25 +234,25 @@ multiplot etc."
               (loop repeat n do (plt))
               (plt)))))))
 
-(defun plot (data-producing-fn &rest args &key using &allow-other-keys)
-  "DATA-PRODUCING-FN is either a function producing data, a string
+(defun plot (data &rest args &key using &allow-other-keys)
+  "DATA is either a function producing data, a string
 representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
-  (apply #'%plot data-producing-fn args))
-(defun splot (data-producing-fn &rest args &key using &allow-other-keys)
-  "DATA-PRODUCING-FN is either a function producing data, a string
+  (apply #'%plot data args))
+(defun splot (data &rest args &key using &allow-other-keys)
+  "DATA is either a function producing data, a string
 representing gnuplot functions, or a pathanme for input data."
   (declare (ignorable using))
-  (apply #'plot data-producing-fn :type :splot args))
-(defun func-plot (string &rest args &key using &allow-other-keys)
+  (apply #'plot data :type :splot args))
+(defun func-plot (expression &rest args &key using &allow-other-keys)
   (declare (ignorable using))
-  (check-type string string)
+  (check-type expression string)
   (warn "FUNC-PLOT is deprecated. Use the PLOT function with a string.")
-  (apply #'%plot string args))
-(defun func-splot (string &rest args &key using &allow-other-keys)
+  (apply #'%plot expression args))
+(defun func-splot (expression &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (warn "FUNC-SPLOT is deprecated. Use the PLOT function with a string.")
-  (apply #'func-plot string :type :splot args))
+  (apply #'func-plot expression :type :splot args))
 (defun datafile-plot (pathspec &rest args &key using &allow-other-keys)
   (declare (ignorable using))
   (check-type pathspec (or string pathname))
@@ -230,3 +266,17 @@ representing gnuplot functions, or a pathanme for input data."
 (defun row (&rest args)
   "Write a row"
   (format *user-stream* "~&~{~a~^ ~}" args))
+
+(defun fit (expression data &rest args &key using via unitweights yerror xyerror zerror errors &allow-other-keys)
+  "EXPRESSION is a string representing gnuplot fitting target expressions e.g. f(x), ax**2+bx+c.
+DATA is either a function producing data, a string
+representing a gnuplot expression, or a pathanme for input data."
+  (declare (ignorable using unitweights yerror xyerror zerror errors))
+  (assert via (via) "specify the values to be fitted")
+  ;; I considered using GP here, but it quotes functions unavoidably
+  (format *user-stream* "~&fit ~a ~a " expression (data-filename data))
+  (%gp args)
+  (when (functionp data)
+    (fresh-line *user-stream*)
+    (funcall data)
+    (gp :end)))

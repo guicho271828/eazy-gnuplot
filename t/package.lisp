@@ -23,6 +23,7 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (when (probe-file path)
       (delete-file path))
     (&body)
@@ -33,6 +34,7 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (when (probe-file path)
       (delete-file path))
     (&body)
@@ -43,10 +45,14 @@
                :eazy-gnuplot.test out)))
     (print path)
     (terpri)
+    (finish-output)
     (ignore-errors
       (when (probe-file path)
-        (delete-file path)))
-    (&body)))
+        (delete-file path))
+      (&body))))
+
+(defun rel (pathname)
+  (asdf:system-relative-pathname :eazy-gnuplot pathname))
 
 (test eazy-gnuplot
   (with-fixture test-plot ("sample.pdf")
@@ -421,9 +427,11 @@
 (test plot-with-datafile
   (with-fixture test-plot ("plot-data.png")
     (eazy-gnuplot:with-plots (*standard-output* :debug t)
-      (eazy-gnuplot:gp-setup :output path)
-      (datafile-plot "test.dat")        ; backward compatibility
-      (plot #p"test.dat"))))
+      (let ((dat (rel "test.dat")))
+        (eazy-gnuplot:gp-setup :output path)
+        (datafile-plot dat)        ; backward compatibility
+        (datafile-plot (namestring dat))        ; backward compatibility
+        (plot dat)))))
 
 
 (test plot-with-function
@@ -433,6 +441,13 @@
       (func-plot "sin(x)")        ; backward compatibility
       (plot "sin(x)"))))
 
-
-
-
+(test fit
+  (with-fixture test-plot ("fit.png")
+    (eazy-gnuplot:with-plots (*standard-output* :debug t)
+      (eazy-gnuplot:gp-setup :output path)
+      ;; f(x) = a + b*x + c*x**2
+      ;; fit f(x) 'measured.dat' using 1:2 via a,b,c
+      (let ((dat (rel "test.dat")))
+        (fit "a + b*x + c*x**2" dat :using '(1 2) :via '(a b c))
+        (datafile-plot dat)
+        (func-plot "a + b*x + c*x**2")))))
