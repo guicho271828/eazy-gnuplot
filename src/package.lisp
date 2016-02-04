@@ -80,13 +80,13 @@ multiplot etc."
         ((and type (type string)) 
          (setf terminal (make-keyword type)))))
     (setf *plot-type-multiplot* multiplot)
-    (format *plot-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
-    (format *plot-stream* "~&set ~a ~a" :output (gp-quote output))
+    (format *user-stream* "~&set ~a ~a" :terminal (gp-quote terminal))
+    (format *user-stream* "~&set ~a ~a" :output (gp-quote output))
     (remf args :terminal)
     (remf args :output)
     (map-plist args
                (lambda (key val)
-                 (format *plot-stream* "~&set ~a ~a"
+                 (format *user-stream* "~&set ~a ~a"
                          key (gp-quote val))))))
 
 (defun gp (left-side &rest right-side)
