@@ -37,5 +37,7 @@
                                :fill-pointer t)))
           (setf (fill-pointer seq) (read-sequence seq stream))
           seq)))
-  
+  :perform (load-op :before (op c)
+                    (unless (zerop (nth-value 2 (uiop:run-program "which gnuplot" :ignore-error-status t)))
+                      (warn "Could not find GNUPLOT in $PATH")))
   :in-order-to ((test-op (test-op eazy-gnuplot.test))))
