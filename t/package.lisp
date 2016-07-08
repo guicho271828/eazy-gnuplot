@@ -467,3 +467,18 @@
               :title "1"
               :with '(:linespoint))))))
 
+(test local-escape2
+  (with-fixture test-plot ("local-escape2.png")
+    (block :escape
+      (with-plots (*standard-output* :debug t)
+        (gp-setup :output path
+                  :terminal :png
+                  :key '(:bottom :right :font "Times New Roman, 6")
+                  :pointsize "0.4px")
+        (plot (lambda ()
+                (format t "~&0 0")
+                (format t "~&1 1")
+                (return-from :escape))
+              :using '(1 2)
+              :title "1"
+              :with '(:linespoint))))))
