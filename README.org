@@ -46,7 +46,7 @@ For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-g
              )
 
    ;; any unsupported commands are available by printing it to the stream
-   (format t "~%unset keys")
+   (format t "~%unset key")
    
    ;; We are extending its expressivity. For example, as of 39d60d, there is gp-unset and gp-set.
    ;; An equivalent of above is (gp-unset :keys) .
