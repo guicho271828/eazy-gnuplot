@@ -450,3 +450,20 @@
         (fit "a + b*x + c*x**2" dat :using '(1 2) :via '(a b c))
         (datafile-plot dat)
         (func-plot "a + b*x + c*x**2")))))
+
+(test local-escape
+  (with-fixture test-plot ("local-escape.png")
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :output path
+                :terminal :png
+                :key '(:bottom :right :font "Times New Roman, 6")
+                :pointsize "0.4px")
+      (block :escape
+        (plot (lambda ()
+                (format t "~&0 0")
+                (format t "~&1 1")
+                (return-from :escape))
+              :using '(1 2)
+              :title "1"
+              :with '(:linespoint))))))
+
