@@ -232,11 +232,12 @@ multiplot etc."
                (format correct-stream "~&end~%")))
         (unwind-protect
             (funcall data) ;;; protect against local escape from DATA
-          (close *user-stream*)
-          (let ((n (count :using args)))
-            (if (> n 0)
-                (loop repeat n do (plt))
-                (plt))))))))
+          (prog1
+            (let ((n (count :using args)))
+              (if (> n 0)
+                  (loop repeat n do (plt))
+                  (plt)))
+            (close *user-stream*)))))))
 
 (defun plot (data &rest args &key using &allow-other-keys)
   "DATA is either a function producing data, a string
