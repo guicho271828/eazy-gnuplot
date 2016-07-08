@@ -163,29 +163,30 @@ multiplot etc."
           (*plot-command-stream* (make-string-output-stream))
           *plot-type-multiplot*)
       (let ((*user-stream* before-plot-stream))
-        (handler-bind ((new-plot
-                        (lambda (c)
-                          (declare (ignore c))
-                          (setf *user-stream* after-plot-stream)
-                          ;; ensure there is a newline
-                          (terpri after-plot-stream))))
-          (funcall body (make-synonym-stream '*user-stream*)))
-        ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-        (format after-plot-stream "~%set output")
-        (with-input-from-string (in ((lambda (str)
-                                       (if debug
-                                           (print str *error-output*)
-                                           str))
-                                     (concatenate 'string
-                                                  (get-output-stream-string before-plot-stream)
-                                                  (get-output-stream-string *plot-command-stream*)
-                                                  (get-output-stream-string *data-stream*)
-                                                  (get-output-stream-string after-plot-stream))))
-          (uiop:run-program *gnuplot-home*
-                            :input in
-                            :output :interactive
-                            :error-output :interactive
-                            :external-format external-format)))))
+        (unwind-protect
+            (handler-bind ((new-plot
+                            (lambda (c)
+                              (declare (ignore c))
+                              (setf *user-stream* after-plot-stream)
+                              ;; ensure there is a newline
+                              (terpri after-plot-stream))))
+              (funcall body (make-synonym-stream '*user-stream*)))
+          ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
+          (format after-plot-stream "~%set output")
+          (with-input-from-string (in ((lambda (str)
+                                         (if debug
+                                             (print str *error-output*)
+                                             str))
+                                       (concatenate 'string
+                                                    (get-output-stream-string before-plot-stream)
+                                                    (get-output-stream-string *plot-command-stream*)
+                                                    (get-output-stream-string *data-stream*)
+                                                    (get-output-stream-string after-plot-stream))))
+            (uiop:run-program *gnuplot-home*
+                              :input in
+                              :output :interactive
+                              :error-output :interactive
+                              :external-format external-format))))))
 
 (defun data-filename (data)
   (etypecase data
