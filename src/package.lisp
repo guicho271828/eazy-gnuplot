@@ -169,9 +169,9 @@ multiplot etc."
                           (setf *user-stream* after-plot-stream)
                           ;; ensure there is a newline
                           (terpri after-plot-stream))))
-          (funcall body (make-synonym-stream '*user-stream*))
-          ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-          (format after-plot-stream "~%set output"))
+          (funcall body (make-synonym-stream '*user-stream*)))
+        ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
+        (format after-plot-stream "~%set output")
         (with-input-from-string (in ((lambda (str)
                                        (if debug
                                            (print str *error-output*)
