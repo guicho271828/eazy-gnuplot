@@ -163,29 +163,30 @@ multiplot etc."
           (*plot-command-stream* (make-string-output-stream))
           *plot-type-multiplot*)
       (let ((*user-stream* before-plot-stream))
-        (handler-bind ((new-plot
-                        (lambda (c)
-                          (declare (ignore c))
-                          (setf *user-stream* after-plot-stream)
-                          ;; ensure there is a newline
-                          (terpri after-plot-stream))))
-          (funcall body (make-synonym-stream '*user-stream*))
+        (unwind-protect
+            (handler-bind ((new-plot
+                            (lambda (c)
+                              (declare (ignore c))
+                              (setf *user-stream* after-plot-stream)
+                              ;; ensure there is a newline
+                              (terpri after-plot-stream))))
+              (funcall body (make-synonym-stream '*user-stream*)))
           ;; this is required when gnuplot handles png -- otherwise the file buffer is not flushed
-          (format after-plot-stream "~%set output"))
-        (with-input-from-string (in ((lambda (str)
-                                       (if debug
-                                           (print str *error-output*)
-                                           str))
-                                     (concatenate 'string
-                                                  (get-output-stream-string before-plot-stream)
-                                                  (get-output-stream-string *plot-command-stream*)
-                                                  (get-output-stream-string *data-stream*)
-                                                  (get-output-stream-string after-plot-stream))))
-          (uiop:run-program *gnuplot-home*
-                            :input in
-                            :output :interactive
-                            :error-output :interactive
-                            :external-format external-format)))))
+          (format after-plot-stream "~%set output")
+          (with-input-from-string (in ((lambda (str)
+                                         (if debug
+                                             (print str *error-output*)
+                                             str))
+                                       (concatenate 'string
+                                                    (get-output-stream-string before-plot-stream)
+                                                    (get-output-stream-string *plot-command-stream*)
+                                                    (get-output-stream-string *data-stream*)
+                                                    (get-output-stream-string after-plot-stream))))
+            (uiop:run-program *gnuplot-home*
+                              :input in
+                              :output :interactive
+                              :error-output :interactive
+                              :external-format external-format))))))
 
 (defun data-filename (data)
   (etypecase data
@@ -222,17 +223,21 @@ multiplot etc."
   (signal 'new-plot)
   (when (functionp data)
     ;; ensure the function is called once
-    (let ((data (with-output-to-string (*user-stream*)
-                  (funcall data)))
-          (correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*)))
+    (let ((correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*))
+          (*user-stream* (make-string-output-stream)))
       (flet ((plt ()
                (terpri correct-stream)
-               (write-sequence data correct-stream)
+               (write-sequence (get-output-stream-string *user-stream*)
+                               correct-stream)
                (format correct-stream "~&end~%")))
-        (let ((n (count :using args)))
-          (if (> n 0)
-              (loop repeat n do (plt))
-              (plt)))))))
+        (unwind-protect
+            (funcall data) ;;; protect against local escape from DATA
+          (prog1
+            (let ((n (count :using args)))
+              (if (> n 0)
+                  (loop repeat n do (plt))
+                  (plt)))
+            (close *user-stream*)))))))
 
 (defun plot (data &rest args &key using &allow-other-keys)
   "DATA is either a function producing data, a string
