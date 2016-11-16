@@ -16,7 +16,7 @@ Lispy Gnuplot library
   also `:errors`, `:via`, `:size`, `m?[xyzr]2?(range|tics)` ...
 + PLOT function accepts strings (treated as functions) and pathnames (treated as datafile). func-plot and datafile-plot are deprecated (but still available).
 
-** Usage
+** Library Usage
 
 Write 1 =with-plots= and (at least) 1 =gp-setup= per output file.
 =gp-setup= accepts and sets any attributes -- mighty
@@ -72,6 +72,16 @@ For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-g
 It results in the following png:
 
 [[https://raw.githubusercontent.com/guicho271828/eazy-gnuplot/master/sample.png]]
+
+** From the Command Line
+
+Requirements: Install [[https://github.com/roswell/roswell/wiki/1.-Installation][roswell]].
+
+: PATH+=~/.roswell/bin/
+: ros install eazy-gnuplot
+: plot-init myplot.ros
+: 
+
 
 ** How it works
 

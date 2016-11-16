@@ -1,0 +1,29 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#| <Put a one-line description here>
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp (ql:quickload '(:eazy-gnuplot) :silent t)
+  )
+
+(defpackage :ros.script.plot-init.3688281412
+  (:use :cl :eazy-gnuplot))
+(in-package :ros.script.plot-init.3688281412)
+
+(defun main (out &rest argv)
+  (declare (ignorable argv))
+  (with-plot (*standard-output* :debug t)
+    (gp-setup :output out
+              :terminal :pdfcairo
+              :size '(3.3 2.7)          ; inch ; half column, US letterpaper
+              :square
+              :logscale :xy)
+    (plot (lambda ()
+            (format s "~&")
+            )
+          :title ""
+          :with :linespoint)))
+
+;;; vim: set ft=lisp lisp:
