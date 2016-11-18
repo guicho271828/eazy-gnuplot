@@ -73,6 +73,12 @@
                                                   dimension num middle type)))
                               ",")))))
 
+(defun wrap-range-result (keyword result)
+  (let ((name (symbol-name keyword)))
+    (if (equal "RANGE" (subseq name (- (length name) 5)))
+        (format nil "[~a]" result)
+        result)))
+
 (defun gp-quote-for (keyword value)
   (typecase value
     (atom
@@ -80,12 +86,14 @@
     (list
      (if-let ((sep (getf *keyword-separator-alist* keyword)))
        (make-keyword
-        (apply #'concatenate
-               'string
-               (iter (for arg in value)
-                     (unless (first-time-p)
-                       (collect sep))
-                     (collect (princ-to-string arg)))))
+        (wrap-range-result
+         keyword
+         (apply #'concatenate
+                'string
+                (iter (for arg in value)
+                      (unless (first-time-p)
+                        (collect sep))
+                      (collect (princ-to-string arg))))))
        (gp-quote value)))))
 
 

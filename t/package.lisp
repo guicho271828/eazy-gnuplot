@@ -64,6 +64,7 @@
                 :key '(:bottom :right :font "Times New Roman, 6")
                 ;; list contents are recursively quoted
                 ;; then joined by a space
+                :xrange '(0 3)
                 :pointsize "0.4px")
       (func-plot "sin(x)" :title "super sin curve!")
       (plot (lambda ()
