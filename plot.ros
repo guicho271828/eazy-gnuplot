@@ -14,7 +14,7 @@ exec ros -Q -- $0 "$@"
 
 (defun main (out &rest argv)
   (declare (ignorable argv))
-  (with-plot (*standard-output* :debug t)
+  (with-plots (*standard-output* :debug t)
     (gp-setup :output out
               :terminal :pdfcairo
               :size '(3.3 2.7)          ; inch ; half column, US letterpaper
