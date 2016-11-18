@@ -16,9 +16,25 @@ exec ros -Q -- $0 "$@"
   (declare (ignorable argv))
   (with-plots (*standard-output* :debug t)
     (gp-setup :output out
-              :terminal '(:pdfcairo :size (3.3 2.7)) ; inch ; half column, US letterpaper
+              :terminal `(:pdf :enhanced
+                               :size
+                               (3.3 3.3) ; inch ; half column, US letterpaper
+                               ;; (800 800)
+                               ;; :dashed
+                               ;; :background :rgb ,(if improved "white" "gray90")
+                               ;; :monochrome
+                               :font "Times New Roman, 11")
               :size :square
-              :logscale :xy)
+              :view '(:equal :xy)
+              ;; :key key
+              :pointsize 0.3
+              :logscale :xy
+              :format '(xy "10^%T")
+              :mxtics :default
+              :mytics :default
+              :title ""
+              :xlabel ""
+              :ylabel "")
     (plot (lambda ()
             (format s "~&")
             )
