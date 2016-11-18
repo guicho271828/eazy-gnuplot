@@ -66,16 +66,28 @@
 (iter (for dimension in '("X" "Y" "Z" "R"))
       (iter (for num in '("2" ""))
             (iter (for middle in '("M" ""))
-                  (iter (for type in '("TICS" "RANGE"))
+                  (iter (for type in '("TICS"))
                         (setf (getf *keyword-separator-alist*
                                     (make-keyword
                                      (concatenate 'string
                                                   dimension num middle type)))
                               ",")))))
 
+
+(iter (for dimension in '("X" "Y" "Z" "R"))
+      (iter (for num in '("2" ""))
+            (iter (for middle in '("M" ""))
+                  (iter (for type in '("RANGE"))
+                        (setf (getf *keyword-separator-alist*
+                                    (make-keyword
+                                     (concatenate 'string
+                                                  dimension num middle type)))
+                              ":")))))
+
 (defun wrap-range-result (keyword result)
   (let ((name (symbol-name keyword)))
-    (if (equal "RANGE" (subseq name (- (length name) 5)))
+    (if (and (< 5 (length name))
+             (equal "RANGE" (subseq name (- (length name) 5))))
         (format nil "[~a]" result)
         result)))
 
