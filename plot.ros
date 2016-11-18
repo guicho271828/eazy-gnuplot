@@ -16,8 +16,7 @@ exec ros -Q -- $0 "$@"
   (declare (ignorable argv))
   (with-plots (*standard-output* :debug t)
     (gp-setup :output out
-              :terminal :pdfcairo
-              :size '(3.3 2.7)          ; inch ; half column, US letterpaper
+              :terminal '(:pdfcairo :size (3.3 2.7)) ; inch ; half column, US letterpaper
               :size :square
               :logscale :xy)
     (plot (lambda ()
