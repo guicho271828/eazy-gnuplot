@@ -18,7 +18,7 @@ exec ros -Q -- $0 "$@"
     (gp-setup :output out
               :terminal :pdfcairo
               :size '(3.3 2.7)          ; inch ; half column, US letterpaper
-              :square
+              :size :square
               :logscale :xy)
     (plot (lambda ()
             (format s "~&")
