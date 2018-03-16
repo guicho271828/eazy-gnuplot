@@ -166,15 +166,15 @@ multiplot etc."
           (t
            (format *user-stream* "~A " (gp-quote arg))))))
 
-(defmacro with-plots ((stream &key debug (external-format :default))
+(defmacro with-plots ((stream &key debug (external-format :default) (persist nil))
                       &body body)
   (check-type stream symbol)
-  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
+  `(call-with-plots ,external-format ,persist ,debug (lambda (,stream) ,@body)))
 
 
 (define-condition new-plot () ())
 
-(defun call-with-plots (external-format debug body)
+(defun call-with-plots (external-format persist debug body)
     (let ((*plot-type* nil)
           (*print-case* :downcase)
           (before-plot-stream (make-string-output-stream))
@@ -202,7 +202,9 @@ multiplot etc."
                                                     (get-output-stream-string *plot-command-stream*)
                                                     (get-output-stream-string *data-stream*)
                                                     (get-output-stream-string after-plot-stream))))
-            (uiop:run-program *gnuplot-home*
+            (uiop:run-program (if persist (prog1 (concatenate 'string *gnuplot-home* " -persist ")
+					    (if debug (print "-persist" *error-output*)))
+				  *gnuplot-home*)
                               :input in
                               :output :interactive
                               :error-output :interactive
