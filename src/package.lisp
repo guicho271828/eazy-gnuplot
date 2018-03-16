@@ -120,9 +120,9 @@
 however it serves some special purposes such as terminal detection from the output,
 multiplot etc."
   (let ((*print-case* :downcase))
-    (unless output
-      (error "missing ouptut!"))
     (when (null terminal)
+      (unless output
+	(error "missing ouptut!"))
       (ematch (pathname-type (pathname output))
         ((and type (or :unspecific :wild nil "*"))
          (error "gp-setup is missing :terminal, and ~
