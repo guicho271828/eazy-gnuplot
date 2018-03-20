@@ -168,6 +168,16 @@ multiplot etc."
 
 (defmacro with-plots ((stream &key debug (external-format :default) (persist nil))
                       &body body)
+  "with-plots 
+      stream                      - print commands to this stream.
+
+    Keywords
+      :debug boolean              - prints debugging information.
+      :external-format  encoding  - the external format need for output, default is :default.
+      :persist boolean            - allows windows from GUI terminals to remain open; 
+                                    default is nil (not to persist).
+    Body
+      Place your plot code here."
   (check-type stream symbol)
   `(call-with-plots ,external-format ,persist ,debug (lambda (,stream) ,@body)))
 
