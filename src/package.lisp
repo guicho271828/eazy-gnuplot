@@ -122,7 +122,7 @@ multiplot etc."
   (let ((*print-case* :downcase))
     (when (null terminal)
       (unless output
-	(error "missing ouptut!"))
+	(error "missing output!"))
       (ematch (pathname-type (pathname output))
         ((and type (or :unspecific :wild nil "*"))
          (error "gp-setup is missing :terminal, and ~
