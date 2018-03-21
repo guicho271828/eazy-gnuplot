@@ -120,17 +120,15 @@
 however it serves some special purposes such as terminal detection from the output,
 multiplot etc."
   (let ((*print-case* :downcase))
-    (when (null terminal)
-      (unless output
-	(error "missing output!"))
-      (ematch (pathname-type (pathname output))
-        ((and type (or :unspecific :wild nil "*"))
-         (error "gp-setup is missing :terminal, and ~
-                 it failed to guess the terminal type from the output pathname ~a,
-                 based on its pathname-type ~a"
-                output type))
-        ((and type (type string)) 
-         (setf terminal (make-keyword type)))))
+    (cond ((and (null terminal) (null output)) (error "gp-setup is missing both :terminal and :output."))
+	  ((null terminal) (ematch (pathname-type (pathname output))
+			     ((and type (or :unspecific :wild nil "*"))
+			      (error "gp-setup is missing :terminal, and ~
+                               it failed to guess the terminal type from the output pathname ~a,
+                                based on its pathname-type ~a"
+				     output type))
+			     ((and type (type string)) 
+			      (setf terminal (make-keyword type))))))
     (setf *plot-type-multiplot* multiplot)
     (apply #'gp :set :terminal (ensure-list terminal))
     (apply #'gp :set :output (ensure-list output))
