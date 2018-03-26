@@ -120,17 +120,15 @@
 however it serves some special purposes such as terminal detection from the output,
 multiplot etc."
   (let ((*print-case* :downcase))
-    (unless output
-      (error "missing ouptut!"))
-    (when (null terminal)
-      (ematch (pathname-type (pathname output))
-        ((and type (or :unspecific :wild nil "*"))
-         (error "gp-setup is missing :terminal, and ~
-                 it failed to guess the terminal type from the output pathname ~a,
-                 based on its pathname-type ~a"
-                output type))
-        ((and type (type string)) 
-         (setf terminal (make-keyword type)))))
+    (cond ((and (null terminal) (null output)) (error "gp-setup is missing both :terminal and :output."))
+	  ((null terminal) (ematch (pathname-type (pathname output))
+			     ((and type (or :unspecific :wild nil "*"))
+			      (error "gp-setup is missing :terminal, and ~
+                               it failed to guess the terminal type from the output pathname ~a,
+                                based on its pathname-type ~a"
+				     output type))
+			     ((and type (type string)) 
+			      (setf terminal (make-keyword type))))))
     (setf *plot-type-multiplot* multiplot)
     (apply #'gp :set :terminal (ensure-list terminal))
     (apply #'gp :set :output (ensure-list output))
@@ -166,15 +164,25 @@ multiplot etc."
           (t
            (format *user-stream* "~A " (gp-quote arg))))))
 
-(defmacro with-plots ((stream &key debug (external-format :default))
+(defmacro with-plots ((stream &key debug (external-format :default) (persist nil))
                       &body body)
+  "with-plots 
+      stream                      - print commands to this stream.
+
+    Keywords
+      :debug boolean              - prints debugging information.
+      :external-format  encoding  - the external format need for output, default is :default.
+      :persist boolean            - allows windows from GUI terminals to remain open; 
+                                    default is nil (not to persist).
+    Body
+      Place your plot code here."
   (check-type stream symbol)
-  `(call-with-plots ,external-format ,debug (lambda (,stream) ,@body)))
+  `(call-with-plots ,external-format ,persist ,debug (lambda (,stream) ,@body)))
 
 
 (define-condition new-plot () ())
 
-(defun call-with-plots (external-format debug body)
+(defun call-with-plots (external-format persist debug body)
     (let ((*plot-type* nil)
           (*print-case* :downcase)
           (before-plot-stream (make-string-output-stream))
@@ -202,7 +210,9 @@ multiplot etc."
                                                     (get-output-stream-string *plot-command-stream*)
                                                     (get-output-stream-string *data-stream*)
                                                     (get-output-stream-string after-plot-stream))))
-            (uiop:run-program *gnuplot-home*
+            (uiop:run-program (if persist (prog1 (concatenate 'string *gnuplot-home* " -persist ")
+					    (if debug (print "-persist" *error-output*)))
+				  *gnuplot-home*)
                               :input in
                               :output :interactive
                               :error-output :interactive
