@@ -8,13 +8,13 @@ exec ros -Q -- $0 "$@"
   #+quicklisp (ql:quickload '(:eazy-gnuplot) :silent t)
   )
 
-(defpackage :ros.script.plot-init.3688281412
+(defpackage :ros.script.plot-init
   (:use :cl :eazy-gnuplot))
-(in-package :ros.script.plot-init.3688281412)
+(in-package :ros.script.plot-init)
 
 (defun main (out &rest argv)
   (declare (ignorable argv))
-  (with-plots (*standard-output* :debug t)
+  (with-plots (s :debug t)
     (gp-setup :output out
               :terminal `(:pdf :enhanced
                                :size
@@ -25,7 +25,8 @@ exec ros -Q -- $0 "$@"
                                ;; :monochrome
                                :font "Times New Roman, 11")
               :size :square
-              :view '(:equal :xy)
+              :view :equal
+              :view :xy
               :key '(:bottom :right)
               :pointsize 0.3
               :logscale :xy
