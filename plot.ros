@@ -28,17 +28,20 @@ exec ros -Q -- $0 "$@"
               :view '(:equal :xy)
               :key '(:bottom :right)
               :pointsize 0.3
-              :logscale :xy
-              :format '(xy "10^%T")
+              ;; :logscale :xy
+              ;; :format '(xy "10^%T")
               :mxtics :default
               :mytics :default
               :title ""
               :xlabel ""
               :ylabel "")
     (plot (lambda ()
-            (format s "~&")
-            )
+            (format s "~&0 0")
+            (format s "~&1 1"))
           :title ""
-          :with :linespoint)))
+          :with :linespoint)
+    (plot "sin(x)"
+          :title "sin"
+          :with :lines)))
 
 ;;; vim: set ft=lisp lisp:
