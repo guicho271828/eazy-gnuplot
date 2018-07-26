@@ -25,8 +25,7 @@ exec ros -Q -- $0 "$@"
                                ;; :monochrome
                                :font "Times New Roman, 11")
               :size :square
-              :view :equal
-              :view :xy
+              :view '(:equal :xy)
               :key '(:bottom :right)
               :pointsize 0.3
               :logscale :xy
