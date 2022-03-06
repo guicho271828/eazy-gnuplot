@@ -483,3 +483,17 @@
               :using '(1 2)
               :title "1"
               :with '(:linespoint))))))
+
+(test issue-43-delimited-conversion
+  (with-fixture test-plot ("3d-plot.png")
+    (with-plots (*standard-output* :debug t)
+      (gp-setup :output path :terminal '(pngcairo))
+      (gp :unset :key)
+      (gp :set :isosamples 40)
+      (gp :set :title "j_0(r^2)")
+      (gp :set :xrange '(-4 4))
+      (gp :set :yrange '(-4 4))
+      (gp :set :ztics 1)
+      (gp :set :view '(29 53))
+      (func-splot "besj0(x**2+y**2)")
+      (format t "~&replot~%"))))
