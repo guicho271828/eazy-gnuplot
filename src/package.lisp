@@ -61,7 +61,11 @@
   "an alist from a keyword to the corresponding separator string.")
 
 (setf (getf *keyword-separator-alist* :using) ":")
-(iter (for keyword in '(:via :at :size :errors :offset :dgrid3d :view))
+(iter (for keyword in '(:via :at :size :errors :offset :dgrid3d :view :origin :layout
+                        :from :to ;; arrow-related
+                        :center
+                        :first :second :graph :screen :character ;; position related
+                        ))
       (setf (getf *keyword-separator-alist* keyword) ","))
 (iter (for dimension in '("X" "Y" "Z" "R" "T" "U" "V" "CB"))
       (iter (for num in '("2" ""))
