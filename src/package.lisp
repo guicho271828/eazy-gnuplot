@@ -255,7 +255,7 @@ multiplot etc."
           (format *plot-command-stream* "~:[, ''~;~] using ~a" first-using (gp-quote-for :using val))
           (setf first-using nil))
          ((list key val)
-          (format *plot-command-stream* " ~a ~a" key (gp-quote val)))))))
+          (format *plot-command-stream* " ~a ~a" key (gp-quote-for key val)))))))
 
   (signal 'new-plot)
   (when (functionp data)
