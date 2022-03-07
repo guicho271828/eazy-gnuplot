@@ -162,7 +162,10 @@ multiplot etc."
   (iter (generate (arg next rest) on args)
         (next arg)
         (cond
-          ((getf *keyword-separator-alist* arg)
+          ((and (getf *keyword-separator-alist* arg)
+                ;; do not apply the separator rule when the next token is not a list.
+                ;; useful when a combination of keywords are used, e.g., "from screen 0.5,0.5"
+                (listp next))
            (format *user-stream* "~A ~A " arg (gp-quote-for arg next))
            (next arg))
           (t
