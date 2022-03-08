@@ -28,47 +28,55 @@ For more examples, see the [[http://guicho271828.github.io/eazy-gnuplot/][eazy-g
 
 #+BEGIN_SRC lisp
 ;;; when :debug is non-nil, gnuplot code is copied to *trace-output*
-(with-plots (*standard-output* :debug t)
-   (gp-setup :xlabel "x-label"      ; strings : "\"x-label\""
-             :ylabel "y-label"
-             :output #p"sample.png" ; pathnames : "\"sample.png\""
-             :terminal :png         ; keyword/symbols: "terminal png"
-             
-             ;; list contents are recursively quoted, then joined by a space
-             :key '(:bottom :right :font "Times New Roman, 6")
-             
-             :pointsize "0.4px"
-             
-             :yrange :|[0:1]|
-             ;; currently, specifying these kinds of options requires to abuse
-             ;; keywords and symbols. Another example: comma separated list, e.g.,
-             ;; :terminal '(:png :size |10cm,6cm|)
-             ;;
-             ;; 2/4/2016 Major options are now covered. 
-             )
+(with-plots (s :debug t)
+  (gp-setup :xlabel "x-label"      ; strings : "\"x-label\""
+            :ylabel "y-label"
+            :output #p"sample.png" ; pathnames : "\"sample.png\""
+            :terminal :png         ; keyword/symbols: "terminal png"
+            
+            ;; list contents are recursively quoted, then joined by a space
+            :key '(:bottom :right :font "Times New Roman, 6")
+            
+            :pointsize "0.4px"
+            
+            :yrange :|[0:1]|
+            ;; currently, specifying these kinds of options requires to abuse
+            ;; keywords and symbols. Another example: comma separated list, e.g.,
+            ;; :terminal '(:png :size |10cm,6cm|)
+            ;;
+            ;; 2/4/2016 Major options are now covered. 
+            )
 
-   ;; any unsupported commands are available by printing it to the stream
-   (format t "~%unset key")
-   
-   ;; We are extending its expressivity. For example, as of 39d60d, there is gp-unset and gp-set.
-   ;; An equivalent of above is (gp-unset :keys) .
-   ;; The list is growing!
+  ;; any unsupported commands are available by printing it to the stream
+  (format s "~%unset key")
+  ;; or through `gp` command 
+  (gp :unset :key)
+  ;; gp-set and gp-unset are equivalent
+  (gp-unset :key)
+  
+  ;; to force something to be printed verbatim inside a command, use symbols whose names are escaped with ||
+  (gp :set :xrange '|[0:1]|)
 
-   ;; Functions can be protted with func-plot
-   (plot "sin(x)" :title "super sin curve!")
-   ;; Plot a lisp data directly
-   (plot (lambda ()
-           (format t "~&0 0")
-           (format t "~&1 1"))
-         :using '(1 2)
-         :title "1"
-         :with '(:linespoint))
-   (plot (lambda ()
-           (format t "~&0 1")
-           (format t "~&1 0"))
-         :using '(1 2)
-         :title "2"
-         :with '(:lines)))
+  ;; Functions
+  (plot "sin(x)" :title "super sin curve!")
+
+  ;; Plot data
+  (plot #p"data.csv" :title "super sin curve!")
+
+  ;; Plot a lisp data directly
+  (plot (lambda ()
+          (format s "~&0 0")
+          (format s "~&1 1"))
+        :using '(1 2)
+        :title "1"
+        :with '(:linespoint))
+
+  (plot (lambda ()
+          (format s "~&0 1")
+          (format s "~&1 0"))
+        :using '(1 2)
+        :title "2"
+        :with '(:lines)))
 #+END_SRC
 
 It results in the following png:
