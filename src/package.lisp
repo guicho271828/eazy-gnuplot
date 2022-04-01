@@ -262,19 +262,15 @@ multiplot etc."
     ;; ensure the function is called once
     (let ((correct-stream (if *plot-type-multiplot* *plot-command-stream* *data-stream*))
           (*user-stream* (make-string-output-stream)))
-      (flet ((plt ()
-               (terpri correct-stream)
-               (write-sequence (get-output-stream-string *user-stream*)
-                               correct-stream)
-               (format correct-stream "~&end~%")))
-        (unwind-protect
-            (funcall data) ;;; protect against local escape from DATA
-          (prog1
-            (let ((n (count :using args)))
-              (if (> n 0)
-                  (loop repeat n do (plt))
-                  (plt)))
-            (close *user-stream*)))))))
+      (unwind-protect
+          (funcall data) ;;; protect against local escape from DATA
+        (let ((n (count :using args))
+              (data-string (get-output-stream-string *user-stream*)))
+          (close *user-stream*)
+          (loop repeat (if (> n 0) n 1)
+                do (terpri correct-stream)
+                   (write-sequence data-string correct-stream)
+                   (format correct-stream "~&end~%")))))))
 
 (defun plot (data &rest args &key using &allow-other-keys)
   "DATA is either a function producing data, a string
